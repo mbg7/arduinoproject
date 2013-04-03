@@ -1,0 +1,42 @@
+/*
+analog outputs
+PWM signals
+--make sure you are using a pin on the arduino that supports PWM!
+*/
+int switchPin = 8;
+int ledPin = 11;
+boolean lastButton = LOW;
+int ledLevel = 0; // 0 to 255
+boolean currentButton = LOW;
+
+void setup()
+{
+  pinMode(switchPin, INPUT);
+  pinMode(ledPin,OUTPUT);
+}
+
+boolean debounce(boolean last)
+{
+  boolean current = digitalRead(switchPin);
+  if(last !=current)
+  {
+    delay(5); //long enough for switch to finish bouncing, not too long to let your finger hit
+    current = digitalRead(switchPin);
+  }
+  return current;
+}
+
+
+void loop()
+{
+  currentButton = debounce(lastButton);
+  
+  if (lastButton ==LOW && currentButton == HIGH)
+  {
+    ledLevel = ledLevel +51; //picked 51 bc 255 is divisible by 51
+  }
+  lastButton = currentButton;
+  
+  if(ledLevel > 255) ledLevel = 0; //dont need brackets bc its one line
+  analogWrite(ledPin, ledLevel);
+}
