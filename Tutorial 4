@@ -1,0 +1,21 @@
+/*
+My first program!
+*/
+
+int ledPin = 13;
+
+void setup()
+{
+  // initialize digital pins as outputs
+  pinMode(ledPin,output);
+  
+}
+
+void loop()
+{
+  // turn LED on and off
+  digitalWrite(ledPin,HIGH);
+  delay(1000); // takes arguments in ms
+  digitalWrite(ledPin, LOW);
+  delay(1000);
+}
