@@ -1,0 +1,144 @@
+//Sample using LiquidCrystal library
+
+#include <LiquidCrystal.h>
+/*******************************************************
+This program will test the LCD panel and the buttons
+Mark Bramwell, July 2010
+********************************************************/
+// select the pins used on the LCD panel
+
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+
+// define some values used by the panel and buttons
+int lcd_key = 0;
+int adc_key_in = 0;
+#define btnRIGHT 0
+#define btnUP 1
+#define btnDOWN 2
+#define btnLEFT 3
+#define btnSELECT 4
+#define btnNONE 5
+#define V1 (0+50)
+#define V2 (50+99)
+#define V3 (50+255)
+#define V4 (50+409)
+#define V5 (50+639)
+#define VNONE (50+1023)
+
+// Define time
+int minute = 0;
+int second = 0;
+
+// Define start/stop status
+boolean lastButton = LOW;
+boolean currentButton = LOW;
+
+// read the buttons
+int read_LCD_buttons()
+{
+  adc_key_in = analogRead(0); // read the value from the sensor
+  // my buttons when read are centered at these valies: 0, 144, 329, 504, 741
+  // we add approx 50 to those values and check to see if we are close
+  if (adc_key_in > VNONE) return btnNONE; // We make this the 1st option for speed reasons since it will be the most likely result
+  if (adc_key_in < V1) return btnRIGHT;
+  if (adc_key_in < V2) return btnUP;
+  if (adc_key_in < V3) return btnDOWN;
+  if (adc_key_in < V4) return btnLEFT;
+  if (adc_key_in < V5) return btnSELECT;
+  return btnNONE; // when all others fail, return this...
+}
+
+//// Count down the time
+//void countDown(int time)
+//{
+//    for (int secondsLeft=time; secondsLeft==0 ; secondsLeft--){
+//        minute = secondsLeft / 60; 
+//        second = secondsLeft % 60; // modulus : the remainder after devision
+//        minute = minute - (second/60);
+//        lcd.print(minute);
+//        lcd.print(":");
+//        lcd.print(second);
+//        delay(1000);
+//      }
+//}
+
+void setup()
+{
+  lcd.begin(16, 2); // start the library
+  lcd.clear();
+}
+void loop()
+{
+  lcd_key = read_LCD_buttons(); // read the buttons
+  switch (lcd_key) // depending on which button was pushed, we perform an action
+  {
+    case btnRIGHT:
+    {
+      second = second+1;
+      lcd.print(minute);
+      lcd.print(":");
+      lcd.print(second);
+      break;
+    }
+    case btnLEFT:
+    {
+      second = second -1;
+      lcd.print(minute);
+      lcd.print(":");
+      lcd.print(second);
+      break;
+    }
+    case btnUP:
+    {
+      minute = minute+1;
+      lcd.print(minute);
+      lcd.print(":");
+      lcd.print(second);
+      break;
+    }
+    case btnDOWN:
+    {
+      minute = minute-1;
+      lcd.print(minute);
+      lcd.print(":");
+      lcd.print(second);
+      break;
+    }
+    case btnSELECT:
+    {
+      currentButton = HIGH;
+      //Start Countdown
+      int time = (60*minute) + second;
+        for (int secondsLeft=time; secondsLeft==0 ; secondsLeft--){
+          // Stop time countdown if this is the second button press
+          if(currentButton == HIGH && lastButton == HIGH) {
+            currentButton = LOW;
+            lastButton = LOW;
+            break;
+          }
+          //continue to countdown time if this is the first button press
+          minute = secondsLeft / 60; 
+          second = secondsLeft % 60; // modulus : the remainder after devision
+          minute = minute - (second/60);
+          lcd.print(minute);
+          lcd.print(":");
+          lcd.print(second);
+          delay(1000);
+        }
+      lastButton = currentButton;
+      currentButton = LOW;
+      break;
+      
+      //Stop Countdown
+    }
+    case btnNONE:
+    {
+      lcd.print(minute);
+      lcd.print(":");
+      lcd.print(second);
+      break;
+    }
+  }
+  delay(500);
+  lcd.clear();
+}
