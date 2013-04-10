@@ -30,6 +30,8 @@ int adc_key_in = 0;
 int minute = 0;
 int second = 0;
 int time = 0;
+long previousMillis = 0;
+long oneSecond = 1000;
 
 // Define start/stop status
 boolean lastButton = LOW;
@@ -110,36 +112,42 @@ void loop()
     }
     case btnSELECT:
     {
-  //    currentButton = HIGH;
-      Serial.println("btnSELECT");
+      currentButton = HIGH;
       numSELECTpresses++;
+      Serial.println("btnSELECT");
       Serial.println(numSELECTpresses);
+      
       //Start Countdown
       time = (60*minute) + second;
-  
-      while(time > 0 && (numSELECTpresses%2)==0){ // this is an "odd" press of select --> I want to START time
+      unsigned long currentMillis = millis();
+      Serial.print("currentMillis: "); Serial.println(currentMillis);
+      Serial.print("previousMillis: "); Serial.println(previousMillis);
+      while(time > 0 && (numSELECTpresses%2)!=0){ // this is an "odd" press of select --> I want to START time
+       if((currentMillis - previousMillis) >= oneSecond){
+        previousMillis = currentMillis;
+        Serial.print("previousMillis, after entering if statement: "); Serial.println(previousMillis);
         minute = time/60;
         second = time%60;
+        lcd.clear();
         lcd.print(minute);
         lcd.print(":");
         lcd.print(second);
+        time--;
+       }
         int buttonStatus = read_LCD_buttons();
         if(buttonStatus == btnSELECT){
           numSELECTpresses++;
-          Serial.println("2nd Push");
-          Serial.println(numSELECTpresses);
         }
-        
-        delay(1000); // wait a second
-        lcd.clear();
-        time--; //count down the second
+        currentMillis = millis();
+        Serial.print("currentMillis, after printing & checking button status: "); Serial.println(previousMillis);
       }
-      break;
-        
+      
+      if(time==0)  break;
+      
+      //Stop Countdown
     }
     case btnNONE:
     {
-      Serial.println("btnNONE");
       lcd.print(minute);
       lcd.print(":");
       lcd.print(second);
