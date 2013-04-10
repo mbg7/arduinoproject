@@ -38,18 +38,39 @@ boolean lastButton = LOW;
 boolean currentButton = LOW;
 int numSELECTpresses = 0;
 
+// Define variables used in debounce code
+int buttonBounceState;
+int lastButtonBounceState = HIGH;
+long lastDebounceTime = 0;
+long debounceDelay = 500;
+int reading;
+
 // read the buttons
 int read_LCD_buttons()
 {
   adc_key_in = analogRead(0); // read the value from the sensor
+  buttonBounceState = lastButtonBounceState;
+  // if the switch changed, due to either noise or pressing:
+  if( adc_key_in != lastButtonBounceState){
+    //reset the debouncing timer
+    lastDebounceTime = millis();
+  }
+  if ((millis() - lastDebounceTime) > debounceDelay){
+    //whatever the reading is at, its been there for longer than the debounce
+    //delay, so take it as the actual current state:
+    buttonBounceState = adc_key_in;
+  }
+  
+  lastButtonBounceState = adc_key_in;
   // my buttons when read are centered at these values: 0, 144, 329, 504, 741
   // we add approx 50 to those values and check to see if we are close
-  if (adc_key_in > VNONE) return btnNONE; // We make this the 1st option for speed reasons since it will be the most likely result
-  if (adc_key_in < V1) return btnRIGHT;
-  if (adc_key_in < V2) return btnUP;
-  if (adc_key_in < V3) return btnDOWN;
-  if (adc_key_in < V4) return btnLEFT;
-  if (adc_key_in < V5) return btnSELECT;
+  if (buttonBounceState > VNONE) return btnNONE; // We make this the 1st option for speed reasons since it will be the most likely result
+  if (buttonBounceState < V1) return btnRIGHT;
+  if (buttonBounceState < V2) return btnUP;
+  if (buttonBounceState < V3) return btnDOWN;
+  if (buttonBounceState < V4) return btnLEFT;
+  if (buttonBounceState < V5) return btnSELECT;
+ 
   return btnNONE; // when all others fail, return this...
 }
 
@@ -112,9 +133,15 @@ void loop()
     }
     case btnSELECT:
     {
-      currentButton = HIGH;
+      // Initialize variables used to monitor whether or not the user has pressed the select button
+      int buttonStatus1 = 0;
+      int buttonStatus2 = 0;
+      int buttonStatus3 = 0;
+      int buttonStatus4 = 0;
+      int buttonStatus5 = 0;
+      
       numSELECTpresses++;
-      Serial.println("btnSELECT");
+      Serial.print("numSELECTpresses: ");
       Serial.println(numSELECTpresses);
       
       //Start Countdown
@@ -122,30 +149,56 @@ void loop()
       unsigned long currentMillis = millis();
       Serial.print("currentMillis: "); Serial.println(currentMillis);
       Serial.print("previousMillis: "); Serial.println(previousMillis);
-      while(time > 0 && (numSELECTpresses%2)!=0){ // this is an "odd" press of select --> I want to START time
+      
+      while(time >= 0 && (numSELECTpresses%2)!=0){ // this is an "odd" press of select --> I want to START time
+       Serial.println("Yay! Entered while loop");
+       buttonStatus2 = read_LCD_buttons();
+       Serial.print("Button Status 2: ");
+       Serial.println(buttonStatus2);
+       Serial.print("numSELECTpresses: ");
+      Serial.println(numSELECTpresses);
        if((currentMillis - previousMillis) >= oneSecond){
-        previousMillis = currentMillis;
-        Serial.print("previousMillis, after entering if statement: "); Serial.println(previousMillis);
-        minute = time/60;
-        second = time%60;
-        lcd.clear();
-        lcd.print(minute);
-        lcd.print(":");
-        lcd.print(second);
-        time--;
-       }
-        int buttonStatus = read_LCD_buttons();
-        if(buttonStatus == btnSELECT){
-          numSELECTpresses++;
+            previousMillis = currentMillis;
+            Serial.print("previousMillis, after entering if statement: "); Serial.println(previousMillis);
+            minute = time/60;
+            second = time%60;
+            buttonStatus3 = read_LCD_buttons();
+             Serial.print("Button Status 3: ");
+             Serial.println(buttonStatus3);
+             Serial.print("numSELECTpresses: ");
+      Serial.println(numSELECTpresses);
+            lcd.clear();
+            lcd.print(minute);
+            lcd.print(":");
+            lcd.print(second);
+            buttonStatus4 = read_LCD_buttons();
+             Serial.print("Button Status 4: ");
+       Serial.println(buttonStatus4);
+       Serial.print("numSELECTpresses: ");
+      Serial.println(numSELECTpresses);
+            time--;
+            Serial.println("I just took time off the clock.");
+        }
+        buttonStatus5 = read_LCD_buttons();
+         Serial.print("Button Status 5: ");
+       Serial.println(buttonStatus5);
+       Serial.print("numSELECTpresses: ");
+      Serial.println(numSELECTpresses);
+        if(( buttonStatus2==btnSELECT || buttonStatus3==btnSELECT || buttonStatus4==btnSELECT || buttonStatus5==btnSELECT)){
+          numSELECTpresses++; //this is an "even" press of select
+          Serial.println("Someone pressed select again!");
         }
         currentMillis = millis();
         Serial.print("currentMillis, after printing & checking button status: "); Serial.println(previousMillis);
       }
       
-      if(time==0)  break;
+      if(time==0){
+        Serial.println("Im going to break out of the select case.");
+        break;
+      }
       
-      //Stop Countdown
     }
+    
     case btnNONE:
     {
       lcd.print(minute);
