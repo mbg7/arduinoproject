@@ -110,48 +110,32 @@ void loop()
     }
     case btnSELECT:
     {
-      currentButton = HIGH;
-      numSELECTpresses++;
+  //    currentButton = HIGH;
       Serial.println("btnSELECT");
+      numSELECTpresses++;
       Serial.println(numSELECTpresses);
-      
       //Start Countdown
       time = (60*minute) + second;
-      while(time > 0 && (numSELECTpresses%2)!=0){ // this is an "odd" press of select --> I want to START time
+  
+      while(time > 0 && (numSELECTpresses%2)==0){ // this is an "odd" press of select --> I want to START time
         minute = time/60;
         second = time%60;
         lcd.print(minute);
         lcd.print(":");
         lcd.print(second);
-        delay(1000);
-        lcd.clear();
-        time--;
         int buttonStatus = read_LCD_buttons();
         if(buttonStatus == btnSELECT){
           numSELECTpresses++;
+          Serial.println("2nd Push");
+          Serial.println(numSELECTpresses);
         }
+        
+        delay(1000); // wait a second
+        lcd.clear();
+        time--; //count down the second
       }
-        for (int secondsLeft=time; secondsLeft==0 ; secondsLeft--){
-//       // Stop time countdown if this is the second button press
-//        if(currentButton == HIGH && lastButton == HIGH) {
-//          currentButton = LOW;
-//            lastButton = LOW;
-//            break;
-//          }
-          //continue to countdown time if this is the first button press
-          minute = secondsLeft / 60;  //convert from seconds to minutes. (Rounds down)
-          second = secondsLeft % 60;  //%, modulo, = the remainder after devision
-
-//          lcd.print(minute);
-//          lcd.print(":");
-//          lcd.print(second);
-          delay(1000);
-        }
-      lastButton = currentButton;
-      currentButton = LOW;
       break;
-      
-      //Stop Countdown
+        
     }
     case btnNONE:
     {
