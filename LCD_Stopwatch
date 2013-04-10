@@ -3,7 +3,8 @@
 #include <LiquidCrystal.h>
 /*******************************************************
 This program will test the LCD panel and the buttons
-Mark Bramwell, July 2010
+Original Template: Mark Bramwell, July 2010
+Edited by: Inka Johnson, Marina Goll, Jackson Morton April 2013
 ********************************************************/
 // select the pins used on the LCD panel
 
@@ -28,16 +29,18 @@ int adc_key_in = 0;
 // Define time
 int minute = 0;
 int second = 0;
+int time = 0;
 
 // Define start/stop status
 boolean lastButton = LOW;
 boolean currentButton = LOW;
+int numSELECTpresses = 0;
 
 // read the buttons
 int read_LCD_buttons()
 {
   adc_key_in = analogRead(0); // read the value from the sensor
-  // my buttons when read are centered at these valies: 0, 144, 329, 504, 741
+  // my buttons when read are centered at these values: 0, 144, 329, 504, 741
   // we add approx 50 to those values and check to see if we are close
   if (adc_key_in > VNONE) return btnNONE; // We make this the 1st option for speed reasons since it will be the most likely result
   if (adc_key_in < V1) return btnRIGHT;
@@ -66,6 +69,7 @@ void setup()
 {
   lcd.begin(16, 2); // start the library
   lcd.clear();
+  Serial.begin(9600);
 }
 void loop()
 {
@@ -107,22 +111,40 @@ void loop()
     case btnSELECT:
     {
       currentButton = HIGH;
+      numSELECTpresses++;
+      Serial.println("btnSELECT");
+      Serial.println(numSELECTpresses);
+      
       //Start Countdown
-      int time = (60*minute) + second;
+      time = (60*minute) + second;
+      while(time > 0 && (numSELECTpresses%2)!=0){ // this is an "odd" press of select --> I want to START time
+        minute = time/60;
+        second = time%60;
+        lcd.print(minute);
+        lcd.print(":");
+        lcd.print(second);
+        delay(1000);
+        lcd.clear();
+        time--;
+        int buttonStatus = read_LCD_buttons();
+        if(buttonStatus == btnSELECT){
+          numSELECTpresses++;
+        }
+      }
         for (int secondsLeft=time; secondsLeft==0 ; secondsLeft--){
-          // Stop time countdown if this is the second button press
-          if(currentButton == HIGH && lastButton == HIGH) {
-            currentButton = LOW;
-            lastButton = LOW;
-            break;
-          }
+//       // Stop time countdown if this is the second button press
+//        if(currentButton == HIGH && lastButton == HIGH) {
+//          currentButton = LOW;
+//            lastButton = LOW;
+//            break;
+//          }
           //continue to countdown time if this is the first button press
-          minute = secondsLeft / 60; 
-          second = secondsLeft % 60; // modulus : the remainder after devision
-          minute = minute - (second/60);
-          lcd.print(minute);
-          lcd.print(":");
-          lcd.print(second);
+          minute = secondsLeft / 60;  //convert from seconds to minutes. (Rounds down)
+          second = secondsLeft % 60;  //%, modulo, = the remainder after devision
+
+//          lcd.print(minute);
+//          lcd.print(":");
+//          lcd.print(second);
           delay(1000);
         }
       lastButton = currentButton;
@@ -133,12 +155,13 @@ void loop()
     }
     case btnNONE:
     {
+      Serial.println("btnNONE");
       lcd.print(minute);
       lcd.print(":");
       lcd.print(second);
       break;
     }
   }
-  delay(500);
+  delay(200);
   lcd.clear();
 }
