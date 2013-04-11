@@ -142,15 +142,12 @@ void loop()
       int buttonStatus4 = 0;
       int buttonStatus5 = 0;
       
-      numSELECTpresses++;
-      Serial.print("numSELECTpresses: ");
-      Serial.println(numSELECTpresses);
       
       //Start Countdown
       time = (60*minute) + second;
       unsigned long currentMillis = millis();
       
-      while(time >= 0 && (numSELECTpresses%2)!=0){ // this is an "odd" press of select --> I want to START time
+     do{ // this is an "odd" press of select --> I want to START time
        Serial.println("ENTER WHILE LOOP");
        buttonStatus2 = read_LCD_buttons();
        if((currentMillis - previousMillis) >= oneSecond){
@@ -164,7 +161,7 @@ void loop()
             lcd.print(second);
             buttonStatus4 = read_LCD_buttons();
             time--;
-        }
+        }  while(time > 0 && (numSELECTpresses%2)!=0)
         buttonStatus5 = read_LCD_buttons();
         if(( buttonStatus2==btnSELECT || buttonStatus3==btnSELECT || buttonStatus4==btnSELECT || buttonStatus5==btnSELECT)){
           numSELECTpresses++; //this is an "even" press of select
