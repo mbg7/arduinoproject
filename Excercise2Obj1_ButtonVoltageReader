@@ -1,0 +1,29 @@
+#include <LiquidCrystal.h>
+
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+int voltage = 0;
+
+void setup() {
+lcd.clear();
+lcd.begin(16, 2);
+}
+
+
+void loop() {
+  voltage = analogRead(0); //because a0 corresponds to the button
+  lcd.print(voltage);
+  // delay at the end of the full loop:
+  delay(1000);
+  lcd.clear();
+  
+  /*
+  RESULTS:
+  Select: 639
+  Left: 409
+  Down: 255
+  Up: 98
+  Right: 0
+  Not pressing anything: 1023
+  */
+
+}
