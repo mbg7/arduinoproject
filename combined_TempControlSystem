@@ -18,6 +18,7 @@ int minTemp = 25; //user input
 int heatercircuit = 13;
 boolean heaterstatus = LOW;
 boolean userFinished = false;
+boolean desiredTempSet = false;
 
 // define some values used by the panel and buttons
 int lcd_key = 0;
@@ -44,10 +45,11 @@ void setup()
 
 void loop()
 {
-  setDesiredTemp();
+  while(desiredTempSet == false){
+    setDesiredTemp();
+  }
   controlHeaterCircuit();
-  lcd.print("Marinas code");
-  delay(200);
+  delay(500);
 }
 
 // read the buttons
@@ -86,7 +88,7 @@ void display_setTemp()
 {
   lcd.clear();
   lcd.print("Set Temp: ");
-  lcd.print(setTemp);lcd.print((char)223);
+  lcd.print(setTemp);lcd.print((char)223);lcd.print("C");
   delay(300);
 }
 
@@ -95,7 +97,7 @@ void display_currentTemp()
   lcd.clear();  // Clear the LCD
   
   // Display current temperature.
-  lcd.print("Current Temp:");   
+  lcd.print("CurrentTemp:");   
   lcd.print(currentTemp);
   lcd.print( (char)223);
   lcd.print("C");
@@ -160,26 +162,27 @@ void setDesiredTemp()
   }
   userFinished = false;
   while(setTemp>maxTemp || setTemp<minTemp){
-    lcd.clear();
-    lcd.print("Invalid Temp!"); delay(2000);
-    lcd.clear();
-    lcd.print("Max is ");lcd.print(maxTemp);lcd.print((char)223);lcd.print("C");
-    lcd.setCursor(0,1);
-    lcd.print("Min is ");lcd.print(minTemp);lcd.print((char)223);lcd.print("C");
-    delay(2000);
-    lcd.clear();
-    lcd.print("Select New Temp:"); delay(1500);
-    while(userFinished == false){
-      userAdjustTemp();
-    }
-    userFinished = false;
+        lcd.clear();
+        lcd.print("Invalid Temp!"); delay(2000);
+        lcd.clear();
+        lcd.print("Max is ");lcd.print(maxTemp);lcd.print((char)223);lcd.print("C");
+        lcd.setCursor(0,1);
+        lcd.print("Min is ");lcd.print(minTemp);lcd.print((char)223);lcd.print("C");
+        delay(2000);
+        lcd.clear();
+        lcd.print("Select New Temp:"); delay(1500);
+        while(userFinished == false){
+          userAdjustTemp();
+        }
+        userFinished = false;
   }
   lcd.clear();
   lcd.print("Temp Set.");
-  delay(2000);
   lcd.setCursor(0,1);
-  display_setTemp();
+  lcd.print("Desired = ");
+  lcd.print(setTemp);lcd.print((char)223);lcd.print("C");
   delay(2000);
+  desiredTempSet = true;
 }
 
 
@@ -201,4 +204,4 @@ void controlHeaterCircuit()
     }
   }
 }
-  
+
