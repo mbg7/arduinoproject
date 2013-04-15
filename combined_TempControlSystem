@@ -1,0 +1,204 @@
+/* *****************************************************************
+This function prompts the user to adjust the set point of the 
+temperature controller. It allows the user to increment or decrement
+the temperature. It also tests the set point as part of a sanity check 
+to see if the user set point is within a reasonable range 
+(i.e. not unreasonable high and not below room temperature).
+******************************************************************** */
+
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+
+// Define Variables
+int tempread = A1; // analog output from pin A1 
+int currentTemp = 0; //analog input converted to degrees 
+int setTemp = 0; //user input 
+int maxTemp = 270; //user input
+int minTemp = 25; //user input 
+int heatercircuit = 13;
+boolean heaterstatus = LOW;
+boolean userFinished = false;
+
+// define some values used by the panel and buttons
+int lcd_key = 0;
+int adc_key_in = 0;
+#define btnRIGHT 0
+#define btnUP 1
+#define btnDOWN 2
+#define btnLEFT 3
+#define btnSELECT 4
+#define btnNONE 5
+#define V1 (0+50)
+#define V2 (50+99)
+#define V3 (50+255)
+#define V4 (50+409)
+#define V5 (50+639)
+#define VNONE (50+1023)
+
+void setup()
+{
+  lcd.begin(16,2);
+  pinMode(tempread, INPUT);
+  pinMode(heatercircuit, OUTPUT);
+}
+
+void loop()
+{
+  setDesiredTemp();
+  controlHeaterCircuit();
+  lcd.print("Marinas code");
+  delay(200);
+}
+
+// read the buttons
+int read_LCD_buttons()
+{
+  adc_key_in = analogRead(0); // read the value from the sensor
+  // my buttons when read are centered at these valies: 0, 144, 329, 504, 741
+  // we add approx 50 to those values and check to see if we are close
+  if (adc_key_in > VNONE) return btnNONE; // We make this the 1st option for speed reasons since it will be the most likely result
+  if (adc_key_in < V1) return btnRIGHT;
+  if (adc_key_in < V2) return btnUP;
+  if (adc_key_in < V3) return btnDOWN;
+  if (adc_key_in < V4) return btnLEFT;
+  if (adc_key_in < V5) return btnSELECT;
+  return btnNONE; // when all others fail, return this...
+}
+
+void display_instructions()
+{
+  lcd.clear();
+  lcd.print("Set desired temp:");
+  delay(2000);
+  lcd.clear();
+  lcd.print("Up/Down by 1"); lcd.print((char)223);lcd.print("C");
+  lcd.setCursor(0,1);
+  lcd.print("Lft/Rgt by 50");lcd.print((char)223);lcd.print("C");
+  delay(2000);
+  lcd.clear();
+  lcd.print("Press Select");
+  lcd.setCursor(0,1);
+  lcd.print("when finished.");
+  delay(2000);
+}
+
+void display_setTemp()
+{
+  lcd.clear();
+  lcd.print("Set Temp: ");
+  lcd.print(setTemp);lcd.print((char)223);
+  delay(300);
+}
+
+void display_currentTemp() 
+{
+  lcd.clear();  // Clear the LCD
+  
+  // Display current temperature.
+  lcd.print("Current Temp:");   
+  lcd.print(currentTemp);
+  lcd.print( (char)223);
+  lcd.print("C");
+  
+  // Display the set point temperature which the controller is trying to reach.
+  lcd.setCursor(0,1);          
+  lcd.print("Set Temp:");
+  lcd.print(setTemp);  
+  lcd.print( (char)223);
+  lcd.print("C");
+  delay(1000);
+}
+
+void userAdjustTemp(){
+  lcd_key = read_LCD_buttons(); // read the buttons
+  switch (lcd_key) // depending on which button was pushed, we perform an action
+  {
+    case btnRIGHT:
+    {
+      setTemp = setTemp-50;
+      display_setTemp();
+      break;
+    }
+    case btnLEFT:
+    {
+      setTemp = setTemp+50;
+      display_setTemp();
+      break;
+    }
+    case btnUP:
+    {
+      setTemp = setTemp+1;
+      display_setTemp();
+      break;
+    }
+    case btnDOWN:
+    {
+      setTemp = setTemp-1;
+      display_setTemp();
+      break;
+    }
+    case btnSELECT:
+    {
+      userFinished = true;
+      break;
+    }
+    case btnNONE:
+    {
+      display_setTemp();
+      break;
+    }
+  }
+}
+
+
+void setDesiredTemp()
+{
+  userFinished = false;
+  display_instructions();
+  while(userFinished == false){
+    userAdjustTemp();
+  }
+  userFinished = false;
+  while(setTemp>maxTemp || setTemp<minTemp){
+    lcd.clear();
+    lcd.print("Invalid Temp!"); delay(2000);
+    lcd.clear();
+    lcd.print("Max is ");lcd.print(maxTemp);lcd.print((char)223);lcd.print("C");
+    lcd.setCursor(0,1);
+    lcd.print("Min is ");lcd.print(minTemp);lcd.print((char)223);lcd.print("C");
+    delay(2000);
+    lcd.clear();
+    lcd.print("Select New Temp:"); delay(1500);
+    while(userFinished == false){
+      userAdjustTemp();
+    }
+    userFinished = false;
+  }
+  lcd.clear();
+  lcd.print("Temp Set.");
+  delay(2000);
+  lcd.setCursor(0,1);
+  display_setTemp();
+  delay(2000);
+}
+
+
+void controlHeaterCircuit()
+{
+  //convert to degrees 
+  // thermocouple gives output in mV; gain is 5 mV/degree C
+  currentTemp = analogRead(tempread)/5;
+  
+  display_currentTemp();
+  while(currentTemp<setTemp)
+  {
+    //turn heater on when temp is too low
+    digitalWrite(heaterstatus,HIGH); 
+    currentTemp=analogRead(tempread)/5;
+    
+    if(currentTemp>=maxTemp){
+      Serial.println("WARNING: OVER TEMP. DISCONNECT POWER");
+    }
+  }
+}
+  
