@@ -1,0 +1,31 @@
+int tempread = A1; // analog output from pin A1 
+int currentTemp = 0; //analog input converted to degrees 
+int setTemp = 0; //user input 
+int maxTemp = 0; //user input
+int minTemp = 0; //user input 
+int heatercircuit = 13;
+boolean heaterstatus = LOW;
+
+void setup()
+{
+  pinMode(tempread, INPUT);
+  pinMode(heatercircuit, OUTPUT);
+}
+
+void loop()
+{
+  //convert to degrees 
+  // thermocouple gives output in mV; gain is 5 mV/degree C
+  currentTemp = analogRead(tempread)/5;
+  
+  Serial.println(currentTemp);
+  while(currentTemp<setTemp)
+  {
+    //turn heater on when temp is too low
+    digitalWrite(heaterstatus,HIGH); 
+    currentTemp=analogRead(tempread)/5;
+    
+    if(currentTemp>=300)
+      Serial.println("WARNING: OVER TEMP. DISCONNECT POWER")
+  }
+}
