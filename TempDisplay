@@ -1,0 +1,44 @@
+
+/* Objectives:
+              1) Display the current temperature while the control algorithm is running.
+              2) Print the set point temperature which the controller is trying to reach.
+*/
+    
+// Define Variables
+int currentTemp = 270;
+int setTemp = 230;
+int maxTemp;
+int minTemp;
+
+
+//Degree Signs: lcdprint(char(233))
+
+#include <LiquidCrystal.h>
+
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+
+void setup()
+{
+  lcd.begin(16,2); 
+}
+
+void loop()
+{
+  
+  lcd.clear();  // Clear the LCD
+  
+  // Display current temperature.
+  lcd.print("Current Temp:");   
+  lcd.print(currentTemp);
+  lcd.print( (char)223);
+  lcd.print("C");
+  
+  // Display the set point temperature which the controller is trying to reach.
+  lcd.setCursor(0,1);          
+  lcd.print("Set Temp:");
+  lcd.print(setTemp);  
+  lcd.print( (char)223);
+  lcd.print("C");
+  delay(1000);
+ 
+}
