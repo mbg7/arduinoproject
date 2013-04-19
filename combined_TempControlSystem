@@ -5,19 +5,29 @@ the temperature. It also tests the set point as part of a sanity check
 to see if the user set point is within a reasonable range 
 (i.e. not unreasonable high and not below room temperature).
 ******************************************************************** */
-
+#include <PID_v1.h>
 #include <LiquidCrystal.h>
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 
 // Define Variables
 int tempread = A5; // analog output from pin A1 
-int currentTemp = 0; //analog input converted to degrees 
-int setTemp = 0; //user input 
+double currentTemp = 0; //analog input converted to degrees 
+double setTemp = 0; //user input 
 int maxTemp = 270; //user input
 int minTemp = 25; //user input 
 int heaterPin = 2; //digital output to pin D7
+double Output;
 boolean userFinished = false;
 boolean desiredTempSet = false;
+
+// Specify PID parameters
+double kp = 2; //(proportional gain - difference between the current temperature and the set point)
+double ki = 0.1; //(integral gain - proportional to the magnitude and duration of error)
+double kd = 5; //(derivative gain - slope of the error over time)
+PID myPID(&currentTemp, &Output, &setTemp,kp,ki,kd,DIRECT);
+int WindowSize = 5000;
+unsigned long windowStartTime;
+
 
 // define some values used by the panel and buttons
 int lcd_key = 0;
@@ -47,8 +57,11 @@ void loop()
 {
   while(desiredTempSet == false){
     setDesiredTemp();
+    windowStartTime = millis();
+    myPID.SetOutputLimits(0,WindowSize);
+    myPID.SetMode(AUTOMATIC);
   }
-  controlHeaterCircuit();
+  PIDHeaterControl();
   delay(500);
 }
 
@@ -185,6 +198,20 @@ void setDesiredTemp()
   desiredTempSet = true;
 }
 
+void PIDHeaterControl(){
+  
+  currentTemp = analogRead(tempread)/5;
+  display_currentTemp();
+  myPID.Compute();
+  unsigned long now = millis();
+  if(now - windowStartTime > WindowSize)
+  {
+    windowStartTime += WindowSize;
+  }
+  if(Output > now-windowStartTime) digitalWrite(heaterPin, HIGH);
+  else digitalWrite(heaterPin, LOW);
+}
+
 
 void controlHeaterCircuit()
 {
@@ -201,7 +228,9 @@ void controlHeaterCircuit()
     currentTemp=analogRead(tempread)/5;
     
     if(currentTemp>=maxTemp){
-      Serial.println("WARNING: OVER TEMP. DISCONNECT POWER");
+      lcd.print("WARNING: OVER TEMP.");
+      lcd.setCursor(0,1);
+      lcd.print("DISCONNECT POWER");
     }
   }
   if(currentTemp>=setTemp){
