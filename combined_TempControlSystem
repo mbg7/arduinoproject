@@ -10,13 +10,12 @@ to see if the user set point is within a reasonable range
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 
 // Define Variables
-int tempread = A1; // analog output from pin A1 
+int tempread = A5; // analog output from pin A1 
 int currentTemp = 0; //analog input converted to degrees 
 int setTemp = 0; //user input 
 int maxTemp = 270; //user input
 int minTemp = 25; //user input 
-int heatercircuit = 13;
-boolean heaterstatus = LOW;
+int heaterPin = 2; //digital output to pin D7
 boolean userFinished = false;
 boolean desiredTempSet = false;
 
@@ -38,9 +37,10 @@ int adc_key_in = 0;
 
 void setup()
 {
+  Serial.begin(9600);
   lcd.begin(16,2);
   pinMode(tempread, INPUT);
-  pinMode(heatercircuit, OUTPUT);
+  pinMode(heaterPin, OUTPUT);
 }
 
 void loop()
@@ -195,13 +195,17 @@ void controlHeaterCircuit()
   display_currentTemp();
   while(currentTemp<setTemp)
   {
+    Serial.println("heater on");
     //turn heater on when temp is too low
-    digitalWrite(heaterstatus,HIGH); 
+    digitalWrite(heaterPin,HIGH); 
     currentTemp=analogRead(tempread)/5;
     
     if(currentTemp>=maxTemp){
       Serial.println("WARNING: OVER TEMP. DISCONNECT POWER");
     }
+  }
+  if(currentTemp>=setTemp){
+    digitalWrite(heaterPin,LOW);
   }
 }
 
