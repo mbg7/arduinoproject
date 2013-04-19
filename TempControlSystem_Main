@@ -1,0 +1,49 @@
+/* *****************************************************************
+This function prompts the user to adjust the set point of the 
+temperature controller. It then uses a PID control system to reach 
+and maintain the set temperature in the output.
+******************************************************************** */
+#include <PID_v1.h>
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+
+// Define Global Variables
+double currentTemp = 0; //analog input converted to degrees 
+double setTemp = 0; //user input. The desired temperature of the oven. 
+int maxTemp = 270; // Max allowed temp. Signal alarm if temp ever exceeds this.
+int minTemp = 25; // Room temperature
+boolean desiredTempSet = false; // Has the desired temp been set yet?
+boolean OverTempAlarm = false;
+int readTempPin = A5; //Analog input from pin A5
+int heaterPin = 2; //Digital output to pin D2
+
+// Specify PID parameters and variables
+double kp = 2; //(proportional gain - difference between the current temperature and the set point)
+double ki = 0.1; //(integral gain - proportional to the magnitude and duration of error)
+double kd = 5; //(derivative gain - slope of the error over time)
+int WindowSize = 1000;
+unsigned long windowStartTime;
+double Output;
+PID myPID(&currentTemp, &Output, &setTemp,kp,ki,kd,DIRECT);
+
+void setup()
+{
+  Serial.begin(9600);
+  lcd.begin(16,2);
+  pinMode(readTempPin, INPUT);
+  pinMode(heaterPin, OUTPUT);
+  myPID.SetOutputLimits(0,WindowSize);
+  myPID.SetMode(AUTOMATIC);
+}
+
+void loop()
+{
+  if(!OverTempAlarm){ // As long as we are not overheated...
+      while(!desiredTempSet){ // Set the desired temp if you haven't already
+        setDesiredTemp();
+       }
+      windowStartTime = millis();
+      PIDHeaterControl(); //Monitor & control the temp
+  }
+}
+
