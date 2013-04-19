@@ -1,3 +1,9 @@
+/* ***********************************************************************
+This file contains the user interaction functions.  These allow the user
+to set their desired temperature. If the user selects a temp that is 
+maxTemp or below minTemp, they will be warned and asked to reinput.
+************************************************************************ */
+
 boolean userFinished = false; // Is the user done setting the temp?
 
 // define some values used by the panel and buttons
