@@ -1,0 +1,34 @@
+void PIDHeaterControl(){
+  double currentVal = analogRead(readTempPin);
+  double currentVolt = (currentVal/1023)*5;
+  currentTemp = currentVolt/(.005);
+  Serial.println(currentTemp);
+ 
+  if(currentTemp>=maxTemp){   // If we have exeeded the max temp limit, alert user and turn off oven.
+      lcd.clear();
+      lcd.print("WARNING: TOO HOT!");
+      lcd.setCursor(0,1);
+      lcd.print("DISCONNECT PWR");
+      Serial.print("OVERHEAT TEMP: ");
+      Serial.println(currentTemp);
+      digitalWrite(heaterPin, LOW);
+      OverTempAlarm = true;
+  }
+  if(!OverTempAlarm){
+      display_currentTemp();
+      myPID.Compute();
+      unsigned long now = millis();
+      if(now - windowStartTime > WindowSize)
+      {
+        windowStartTime += WindowSize;
+      }
+      if(Output > now-windowStartTime){
+       Serial.println("Heater On");
+       digitalWrite(heaterPin, HIGH);
+      }
+      else{
+       Serial.println("Heater Off");
+       digitalWrite(heaterPin, LOW);
+      }
+  }
+}
