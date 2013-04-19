@@ -1,0 +1,108 @@
+boolean userFinished = false; // Is the user done setting the temp?
+
+// define some values used by the panel and buttons
+int lcd_key = 0;
+int adc_key_in = 0;
+#define btnRIGHT 0
+#define btnUP 1
+#define btnDOWN 2
+#define btnLEFT 3
+#define btnSELECT 4
+#define btnNONE 5
+#define V1 (0+50)
+#define V2 (50+99)
+#define V3 (50+255)
+#define V4 (50+409)
+#define V5 (50+639)
+#define VNONE (50+1023)
+
+
+
+// read the buttons
+int read_LCD_buttons()
+{
+  adc_key_in = analogRead(0); // read the value from the sensor
+  // my buttons when read are centered at these valies: 0, 144, 329, 504, 741
+  // we add approx 50 to those values and check to see if we are close
+  if (adc_key_in > VNONE) return btnNONE; // We make this the 1st option for speed reasons since it will be the most likely result
+  if (adc_key_in < V1) return btnRIGHT;
+  if (adc_key_in < V2) return btnUP;
+  if (adc_key_in < V3) return btnDOWN;
+  if (adc_key_in < V4) return btnLEFT;
+  if (adc_key_in < V5) return btnSELECT;
+  return btnNONE; // when all others fail, return this...
+}
+
+void userAdjustTemp(){
+  lcd_key = read_LCD_buttons(); // read the buttons
+  switch (lcd_key) // depending on which button was pushed, we perform an action
+  {
+    case btnRIGHT:
+    {
+      setTemp = setTemp-50;
+      display_setTemp();
+      break;
+    }
+    case btnLEFT:
+    {
+      setTemp = setTemp+50;
+      display_setTemp();
+      break;
+    }
+    case btnUP:
+    {
+      setTemp = setTemp+1;
+      display_setTemp();
+      break;
+    }
+    case btnDOWN:
+    {
+      setTemp = setTemp-1;
+      display_setTemp();
+      break;
+    }
+    case btnSELECT:
+    {
+      userFinished = true;
+      break;
+    }
+    case btnNONE:
+    {
+      display_setTemp();
+      break;
+    }
+  }
+}
+
+
+void setDesiredTemp()
+{
+  userFinished = false;
+  display_instructions();
+  while(userFinished == false){
+    userAdjustTemp();
+  }
+  userFinished = false;
+  while(setTemp>maxTemp || setTemp<minTemp){
+        lcd.clear();
+        lcd.print("Invalid Temp!"); delay(2000);
+        lcd.clear();
+        lcd.print("Max is ");lcd.print(maxTemp);lcd.print((char)223);lcd.print("C");
+        lcd.setCursor(0,1);
+        lcd.print("Min is ");lcd.print(minTemp);lcd.print((char)223);lcd.print("C");
+        delay(2000);
+        lcd.clear();
+        lcd.print("Select New Temp:"); delay(1500);
+        while(userFinished == false){
+          userAdjustTemp();
+        }
+        userFinished = false;
+  }
+  lcd.clear();
+  lcd.print("Temp Set.");
+  lcd.setCursor(0,1);
+  lcd.print("Desired = ");
+  lcd.print(setTemp);lcd.print((char)223);lcd.print("C");
+  delay(2000);
+  desiredTempSet = true;
+}
