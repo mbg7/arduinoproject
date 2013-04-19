@@ -1,9 +1,16 @@
+/* ***********************************************************************
+This file contains the PID Control function.  PID coefficients were 
+provided initially by Dr. Palmeri.  They may be improved in the future
+using the AutoTune library.
+************************************************************************ */
+
 void PIDHeaterControl(){
   double currentVal = analogRead(readTempPin);
   double currentVolt = (currentVal/1023)*5;
   currentTemp = currentVolt/(.005);
   Serial.println(currentTemp);
  
+ // CHECK OVERTEMP CONDITION
   if(currentTemp>=maxTemp){   // If we have exeeded the max temp limit, alert user and turn off oven.
       lcd.clear();
       lcd.print("WARNING: TOO HOT!");
@@ -14,21 +21,12 @@ void PIDHeaterControl(){
       digitalWrite(heaterPin, LOW);
       OverTempAlarm = true;
   }
+  
   if(!OverTempAlarm){
       display_currentTemp();
       myPID.Compute();
-      unsigned long now = millis();
-      if(now - windowStartTime > WindowSize)
-      {
-        windowStartTime += WindowSize;
-      }
-      if(Output > now-windowStartTime){
-       Serial.println("Heater On");
-       digitalWrite(heaterPin, HIGH);
-      }
-      else{
-       Serial.println("Heater Off");
-       digitalWrite(heaterPin, LOW);
-      }
+      analogWrite(heaterPin, Output); // Using PWM. Default Output range is 0 - 255
+      Serial.print("OUTPUT Duty Cycle: "); Serial.println(Output);
+      if(Output==0) Serial.print("Heater completely off");
   }
 }
