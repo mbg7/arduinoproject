@@ -1,3 +1,10 @@
+/* *************************************************************************
+This file contains the lcd display functions. 
+ > display_instructions() : Instructions on how to set the desired temperature.
+ > display_setTemp() : Displays the desired temp.
+ > display_currentTemp() : Current temp on first line and set temp on 2nd line.
+*************************************************************************** */
+
 void display_instructions()
 {
   lcd.clear();
