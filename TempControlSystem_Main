@@ -31,6 +31,8 @@ double kp = 2; //(proportional gain - difference between the current temperature
 double ki = 0.1; //(integral gain - proportional to the magnitude and duration of error)
 double kd = 5; //(derivative gain - slope of the error over time)
 double Output;
+int WindowSize = 50; //ms
+unsigned long windowStartTime;
 PID myPID(&currentTemp, &Output, &setTemp,kp,ki,kd,DIRECT);
 
 void setup()
@@ -39,6 +41,9 @@ void setup()
   lcd.begin(16,2);
   pinMode(readTempPin, INPUT);
   pinMode(heaterPin, OUTPUT);
+  windowStartTime = millis();
+  myPID.SetOutputLimits(0, WindowSize); // tell the PID to range
+        // between 0 (never on) and 50 ms (always on)
   myPID.SetMode(AUTOMATIC);
 }
 
