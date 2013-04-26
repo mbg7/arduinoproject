@@ -25,8 +25,18 @@ void PIDHeaterControl(){
   if(!OverTempAlarm){
       display_currentTemp();
       myPID.Compute();  // Takes in the k coefficients, currentTemp, setTemp, and magically determines Output, 
-                        //     a measure (default range of 0 to 255) of "how hard we want to drive the heater."
-      analogWrite(heaterPin, Output);  // Using PWM. Default Output range is 0 - 255
-      Serial.print("OUTPUT Duty Cycle: "); Serial.println(Output);
+                        //     a measure of "how hard we want to drive the heater."
+     // TURN OUTPUT PIN ON/OFF BASED ON PID OUTPUT
+      unsigned long now - millis();
+      if(now - windowStartTime > WindowSize){
+         // time to shift output period window
+          WindowStartTime += WindowSize;
+      }
+      if(Output > now - windowStartTime){
+         digitalWrite(heaterPin, HIGH);  // If output is greater than the time 
+            // that has time that has elapsed from the updated window start time, 
+            // turn the heater ON
+         Serial.println("Heater On");
+      }else digitalWrite(heaterPin, LOW); // Otherwise, keep it off.
   }
 }
