@@ -4,7 +4,8 @@ provided initially by Dr. Palmeri.  They may be improved in the future
 using the AutoTune library.
 ************************************************************************ */
 
-void PIDHeaterControl(){
+void PIDHeaterControl()
+{
   double currentVal = analogRead(readTempPin);  // Reading from the thermocouple pin (vals are on a range from 0 to 1023)
   double currentVolt = (currentVal/1023)*5;    // Map that reading to a voltage (map 0 to 0V and 1023 to 5V)
   currentTemp = currentVolt/(.005);           // Map that voltage to a temperature (5 mV / Degree C)
@@ -20,7 +21,7 @@ void PIDHeaterControl(){
       Serial.println(currentTemp);
       digitalWrite(heaterPin, LOW); // Turn off the heater
       OverTempAlarm = true;  // Enter the OverTempAlarm state --> this locks up the controller until the user resets
-  }
+   }
   
   if(!OverTempAlarm){
       display_currentTemp();
@@ -30,7 +31,7 @@ void PIDHeaterControl(){
       unsigned long now = millis();
       if(now - windowStartTime > WindowSize){
          // time to shift output period window
-          WindowStartTime += WindowSize;
+          windowStartTime += WindowSize;
       }
       if(Output > now - windowStartTime){
          digitalWrite(heaterPin, HIGH);  // If output is greater than the time 
