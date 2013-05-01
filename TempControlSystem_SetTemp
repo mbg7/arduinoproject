@@ -120,7 +120,6 @@ double setDesiredTemp()
   lcd.print(tempToSet);lcd.print((char)223);lcd.print("C");
   delay(2000);
 
-  desiredTempSet = true;
   return tempToSet;
 }
 
