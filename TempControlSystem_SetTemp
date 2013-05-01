@@ -99,7 +99,7 @@ double setDesiredTemp()
     userAdjust(tempToSet, true); // the "true" input tells userAdjust that this is a TEMP.
   }
   userFinished = false;
-  while(tempToSet>maxTemp || tempToSetminTemp){ // Safety Check to make sure the user isn't selecting a temp that is too high or too low
+  while(tempToSet>maxTemp || tempToSet<minTemp){ // Safety Check to make sure the user isn't selecting a temp that is too high or too low
         lcd.clear();
         lcd.print("Invalid Temp!"); delay(2000);
         lcd.clear();
@@ -142,7 +142,6 @@ double setDesiredTime()
   lcd.print("Desired t = ");
   lcd.print(timeToSet);lcd.print("s");
   delay(2000);
-
-  desiredTimeSet = true;
+  
   return timeToSet;
 }
