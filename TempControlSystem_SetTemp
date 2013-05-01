@@ -43,7 +43,7 @@ int read_LCD_buttons()
 /*******************************************************************************************
 This method inputs, adjusts, and then outputs thingToAdjust, which can be a time or a temp.
 *******************************************************************************************/
-double userAdjust(double thingToAdjust{ 
+double userAdjust(double thingToAdjust){ 
   lcd_key = read_LCD_buttons(); // read the buttons
   switch (lcd_key) // depending on which button was pushed, we perform an action
   {
@@ -136,8 +136,10 @@ double setDesiredTime()
   }
   userFinished = false;
   lcd.clear();
-  lcd.print("Time Set. t = ");
-  lcd.print(timeToSet);lcd.print((char)223);lcd.print("C");
+  lcd.print("Time Set.");
+  lcd.setCursor(0,1);
+  lcd.print("Desired t = ");
+  lcd.print(timeToSet);lcd.print("s");
   delay(2000);
 
   desiredTimeSet = true;
