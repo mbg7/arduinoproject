@@ -18,18 +18,20 @@ LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 
 // Define Global Variables
 double T0 = 0;
-double desiredTemp1 = 0;
-double desiredTemp2 = 0;
-double desiredTemp3 = 0;
-double desiredTime1 = 0;
-double desiredTime2 = 0;
-double desiredTime3 = 0;
-double 
+double desiredTemp = 0;
+double desiredTime = 0;
+// double desiredTemp1 = 0;
+// double desiredTemp2 = 0;
+// double desiredTemp3 = 0;
+// double desiredTime1 = 0;
+// double desiredTime2 = 0;
+// double desiredTime3 = 0;
 double currentTemp = 0; //analog input converted to degrees 
 double setTemp = 0; //user input. The desired temperature of the oven. 
 double maxTemp = 270; // Max allowed temp. Signal alarm if temp ever exceeds this.
 double minTemp = 25; // Room temperature
 boolean desiredTempSet = false; // Has the desired temp been set yet?
+boolean desiredTimeSet = false; // Has the desired time been set yet?
 boolean OverTempAlarm = false;
 int readTempPin = A5; //Analog input from pin A5
 int heaterPin = 2; //Digital output to pin D3, a PWM pin
@@ -58,13 +60,23 @@ void setup()
 void loop()
 {
   if(!OverTempAlarm){ // As long as we are not overheated...
-      while(!desiredTempSet){ // Set the desired temp if you haven't already
-        setDesiredTemp();
-        double startTime= millis()
-        val0=analogRead(readTempPin); //reading from thermocouple pin at start of reflow
-        volt0=(val0/1023)*5; //map that reading to a voltage 
+      while(!desiredTempSet){ // Set the desired temps and times if you haven't already.  This should only be done once per reset.
+        display_instructions);
+        double desiredTemp1 = setDesiredTemp();
+        double desiredTime1 = setDesiredTime();
+        double desiredTemp2 = setDesiredTemp();
+        double desiredTime2 = setDesiredTime();
+        double desiredTemp3 = setDesiredTemp();
+        double desiredTime2 = setDesiredTime();
+      }
+
+        double startTime= millis();
+        double val0=analogRead(readTempPin); //reading from thermocouple pin at start of reflow
+        double volt0=(val0/1023)*5; //map that reading to a voltage 
         T0=volt0/(0.005); // Temperature at the start of the reflow 
-       }
+      
+**********************CHUNK OF CODE TO DETERMINE WHAT REFLOW SECTION WE ARE IN******************************
+
       PIDHeaterControl(); //Monitor & control the temp
   }
 }
