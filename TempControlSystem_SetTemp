@@ -141,6 +141,6 @@ double setDesiredTime()
   lcd.print(timeToSet);lcd.print((char)223);lcd.print("C");
   delay(2000);
 
-  desiredTimeSet = true; // NEED TO MAKE THIS VARAIBLE
+  desiredTimeSet = true;
   return timeToSet;
 }
