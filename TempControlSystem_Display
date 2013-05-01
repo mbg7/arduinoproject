@@ -28,9 +28,9 @@ void display_thingUserSelected(double thingToDisplay)
   lcd.print("Set Value: ");
   lcd.print(thingToDisplay);lcd.print((char)223);lcd.print("C");
   delay(300);
-}
+}  
 
-void display_currentTemp() 
+void display_TempTime() 
 {
   lcd.clear();  // Clear the LCD
   
@@ -41,8 +41,10 @@ void display_currentTemp()
   lcd.print("C");
   
   // Display the set point temperature which the controller is trying to reach.
-  lcd.setCursor(0,1);          
-  lcd.print("Set Temp:");
+ if (DesiredTime<=RunTime) {
+  lcd.setCursor(0,2); 
+  lcd.print(DesiredTime-RunTime)  
+  lcd.print("s until ");
   lcd.print(desiredTemp);  
   lcd.print( (char)223);
   lcd.print("C");
