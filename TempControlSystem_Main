@@ -52,6 +52,10 @@ double Output;
 int WindowSize = 500; //ms
 unsigned long windowStartTime;
 PID myPID(&currentTemp, &Output, &setTemp,kp,ki,kd,DIRECT);
+int MaxRelayFrequency = 20; //  The maximum frequency at which we want to tell our SSR to oscillate (in ms).
+int MaxOutput = (1000-WindowSize*MaxRelayFrequency)/MaxRelayFrequency; /* This is the maximum output (in ms) that 
+                                                                          we can have given our window size without
+                                                                          exceeding MaxRelayFrequency. */
 
 void setup()
 {
@@ -66,7 +70,8 @@ void setup()
     pinMode(coolingPin,OUTPUT);
   // Define PID stuff
     windowStartTime = millis();
-    myPID.SetOutputLimits(0, WindowSize); // tell the PID to range between 0 (never on) and 500 ms (always on)
+    myPID.SetOutputLimits(0, MaxOutput); /* The range ouf Output times (in ms). 0 corresponds to oven always being off;
+                                            MaxOutput correlates to the PID being driven at maximum intensity.
     myPID.SetMode(AUTOMATIC);
 }
 
