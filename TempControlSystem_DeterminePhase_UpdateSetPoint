@@ -1,3 +1,12 @@
+/******************************************************************************************
+This code determines what phase of the reflow curve we are in (ramp, soak, cool, etc) and 
+lights LEDs to show the user. It updates the setTemp, desiredTemp and desiredTime variables to
+reflect where we are on the reflow curve. setTemp is the instantaneous set temp for the PID, 
+determined by a linear regression between desiredTemps.  The desiredTemp is one of the three 
+curve points that the user set at the beginning. 
+
+If the PID has been heating for too long, this method alerts the user to cut off power.
+******************************************************************************************/
 
 void determineReflowSection(){
     if (runTime > 30*60){ // if it's been running for longer than is safe
@@ -13,21 +22,25 @@ void determineReflowSection(){
       setTemp = (desiredTemp1-T0)/(desiredTime1-startTime)*(runTime-T0)+T0;
       digitalWrite(rampPin,HIGH); // turns on LED for ramp phase 
       desiredTemp = desiredTemp1;
+      desiredTime = desiredTime1;
     }
     else if (runTime>desiredTime1 & runTime<desiredTime2){
       setTemp = desiredTemp2; 
       digitalWrite(soakPin,HIGH);// turns on LED for soak phase
       desiredTemp = desiredTemp2;
+      desiredTime = desiredTime2;
     }
     else if (runTime>desiredTime2 & runTime<desiredTime3){
       setTemp = (desiredTemp3-desiredTemp2)/(desiredTime3-desiredTime2)*(runTime-desiredTime2)+desiredTemp2;
       digitalWrite(reflowPin,HIGH); // turns on LED for reflow phase 
       desiredTemp = desiredTemp3;
+      desiredTime = desiredTime3;
     }
     else if (runTime>desiredTime3){
       setTemp = 20; 
       digitalWrite(coolingPin,HIGH); // turns on LED for cooling phase 
-      desiredTemp = 25; // room temp
+      desiredTemp = 25; // room temp. arbitrary
+      desiredTime = desiredTime3+90; // this is arbitrary
     }
 }
 
