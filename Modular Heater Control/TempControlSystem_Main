@@ -8,9 +8,6 @@ If the maxTemp is exceeded, the screen locks out with a warning and the output
     overTempAlarm state, the user must reset the controller.
 Future functionality: 
       (1) Improve PID using AutoTune
-      (2) Set alarm lock if the heater has beeen on for too long 
-          > because if physical thermocouple fails, currentTemp is unreliable.
-      (3) Other safety features
 ******************************************************************************** */
 #include <PID_v1.h>
 #include <LiquidCrystal.h>
@@ -44,6 +41,8 @@ double maxTemp = 270; // Max allowed temp. Signal alarm if temp ever exceeds thi
 double minTemp = 25; // Room temperature
 boolean desiredTempSet = false; // Have the desired temps and times been set yet?
 boolean OverTempAlarm = false; // Has the temperature exceeded maxTemp?
+boolean OverTimeAlarm = false; // Has the heater been on for too long?
+boolean ReflowComplete = false; // Is the reflow cycle done?
 
 // Specify PID parameters and variables
 double kp = 2; //(proportional gain - difference between the current temperature and the set point)
@@ -79,29 +78,40 @@ void setup()
 void loop()
 {
   if(!OverTempAlarm){ // As long as we are not overheated...
-    // Now set the desired temps and times if you haven't already.  This should only be done once per reset.  
-     while(!desiredTempSet){ 
-        display_instructions();
-        desiredTemp1 = setDesiredTemp();
-        desiredTime1 = setDesiredTime();
-        desiredTemp2 = setDesiredTemp();
-        desiredTime2 = setDesiredTime();
-        desiredTemp3 = setDesiredTemp();
-        desiredTime2 = setDesiredTime();
-        desiredTempSet = true; // The user has set all their desired values.  We don't need to run these commands again.
-        
-        double val0 = analogRead(readTempPin); //reading from thermocouple pin at start of reflow
-        double volt0 = (val0/1023)*5; //map that reading to a voltage 
-        T0=volt0/(0.005); // Temperature at the start of the reflow 
-        startTime= millis();  // The time elapsed between restarting the Arduino and starting the reflow
+    if(!OverTimeAlarm){ // As long as we have not been on for too long....
+      // Now set the desired temps and times if you haven't already.  This should only be done once per reset.  
+       while(!desiredTempSet){ 
+          display_instructions();
+          lcd.clear();lcd.print("Set Temp 1"); delay(800);
+          desiredTemp1 = setDesiredTemp();
+          lcd.clear();lcd.print("Set Time 1"); delay(800);
+          desiredTime1 = setDesiredTime();
+          lcd.clear();lcd.print("Set Temp 2"); delay(800);
+          desiredTemp2 = setDesiredTemp();
+          lcd.clear();lcd.print("Set Time 2"); delay(800);
+          desiredTime2 = setDesiredTime();
+          lcd.clear();lcd.print("Set Temp 3"); delay(800);
+          desiredTemp3 = setDesiredTemp();
+          lcd.clear();lcd.print("Set Time 3"); delay(800);
+          desiredTime3 = setDesiredTime();
+          desiredTempSet = true; // The user has set all their desired values.  We don't need to run these commands again.
+          
+          double val0 = analogRead(readTempPin); //reading from thermocouple pin at start of reflow
+          double volt0 = (val0/1023)*5; //map that reading to a voltage 
+          T0=volt0/(0.005); // Temperature at the start of the reflow 
+          startTime= millis();  // The time elapsed between restarting the Arduino and starting the reflow
+        }
+      if(!ReflowComplete){ // As long as we aren't already in the cooling phase....
+          runTime = (millis()-startTime)*1000; // Determine how long the PID has been running. In seconds.
+          determineReflowSection();  // Determine if we are in ramp, soak, reflow, or cooling
+          PIDHeaterControl(); //Monitor & control the temp
       }
-    
-    runTime = (millis()-startTime)*1000; // Determine how long the PID has been running. In seconds.
-    determineReflowSection(); 
-    PIDHeaterControl(); //Monitor & control the temp
-
-    /********* Is the setTemp, which is updated continuously by determineReflowSection(), 
-    actually being changed in the PID?  I think the answer is yes because the myPID definition uses 
-    &setTemp, which I am pretty sure is a handle. **************/
+      else if(ReflowComplete){
+        lcd.clear();
+        lcd.print("Cooling");
+        lcd.setCursor(0,1);
+        lcd.print("Temp: ");lcd.print(currentTemp);lcd.print((char)223);lcd.print("C");
+      }
+    }
   }
 }
