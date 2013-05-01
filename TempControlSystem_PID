@@ -27,7 +27,7 @@ void PIDHeaterControl(){
       myPID.Compute();  // Takes in the k coefficients, currentTemp, setTemp, and magically determines Output, 
                         //     a measure of "how hard we want to drive the heater."
      // TURN OUTPUT PIN ON/OFF BASED ON PID OUTPUT
-      unsigned long now - millis();
+      unsigned long now = millis();
       if(now - windowStartTime > WindowSize){
          // time to shift output period window
           WindowStartTime += WindowSize;
