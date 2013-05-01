@@ -1,7 +1,7 @@
 /* ***********************************************************************
 This file contains the user interaction functions.  These allow the user
-to set their desired temperature. If the user selects a temp that is 
-maxTemp or below minTemp, they will be warned and asked to reinput.
+to set their desired temperature and desired time. If the user selects a 
+temp that is maxTemp or below minTemp, they will be warned and asked to reinput.
 ************************************************************************ */
 
 boolean userFinished = false; // Is the user done setting the temp?
@@ -39,32 +39,36 @@ int read_LCD_buttons()
   return btnNONE; // when all others fail, return this...
 }
 
-void userAdjustTemp(){
+
+/*******************************************************************************************
+This method inputs, adjusts, and then outputs thingToAdjust, which can be a time or a temp.
+*******************************************************************************************/
+double userAdjust(double thingToAdjust{ 
   lcd_key = read_LCD_buttons(); // read the buttons
   switch (lcd_key) // depending on which button was pushed, we perform an action
   {
     case btnRIGHT:
     {
-      setTemp = setTemp-50;
-      display_setTemp();
+      thingToAdjust= thingToAdjust-50;
+      display_thingUserSelected(thingToAdjust);
       break;
     }
     case btnLEFT:
     {
-      setTemp = setTemp+50;
-      display_setTemp();
+      thingToAdjust = thingToAdjust+50;
+      display_thingUserSelected(thingToAdjust);
       break;
     }
     case btnUP:
     {
-      setTemp = setTemp+1;
-      display_setTemp();
+      thingToAdjust= thingToAdjust+1;
+      display_thingUserSelected(thingToAdjust);
       break;
     }
     case btnDOWN:
     {
-      setTemp = setTemp-1;
-      display_setTemp();
+      thingToAdjust = thingToAdjust-1;
+      display_thingUserSelected(thingToAdjust);
       break;
     }
     case btnSELECT:
@@ -74,22 +78,27 @@ void userAdjustTemp(){
     }
     case btnNONE:
     {
-      display_setTemp();
+      display_thingUserSelected(thingToAdjust);
       break;
     }
   }
+  return thingToAdjust;
 }
 
 
-void setDesiredTemp()
+/*******************************************************************************************
+This method makes a variable tempToSet, asks the user to adjust it, and then outputs that 
+tempToSet.  It does not let the user select temps that are too hot or too cold.
+*******************************************************************************************/
+double setDesiredTemp()
 {
+  double tempToSet = 0;
   userFinished = false;
-  display_instructions();
   while(userFinished == false){
-    userAdjustTemp();
+    userAdjust(tempToSet);
   }
   userFinished = false;
-  while(setTemp>maxTemp || setTemp<minTemp){
+  while(tempToSet>maxTemp || tempToSetminTemp){ // Safety Check to make sure the user isn't selecting a temp that is too high or too low
         lcd.clear();
         lcd.print("Invalid Temp!"); delay(2000);
         lcd.clear();
@@ -100,7 +109,7 @@ void setDesiredTemp()
         lcd.clear();
         lcd.print("Select New Temp:"); delay(1500);
         while(userFinished == false){
-          userAdjustTemp();
+          userAdjust(tempToSet);
         }
         userFinished = false;
   }
@@ -108,7 +117,30 @@ void setDesiredTemp()
   lcd.print("Temp Set.");
   lcd.setCursor(0,1);
   lcd.print("Desired = ");
-  lcd.print(setTemp);lcd.print((char)223);lcd.print("C");
+  lcd.print(tempToSet);lcd.print((char)223);lcd.print("C");
   delay(2000);
+
   desiredTempSet = true;
+  return tempToSet;
+}
+
+
+/*******************************************************************************************
+This method makes a variable timeToSet, asks the user to adjust it, and then outputs that timeToSet.
+*******************************************************************************************/
+double setDesiredTime()
+{
+  double timeToSet = 0;
+  userFinished = false;
+  while(userFinished == false){
+    userAdjust(timeToSet); 
+  }
+  userFinished = false;
+  lcd.clear();
+  lcd.print("Time Set. t = ");
+  lcd.print(timeToSet);lcd.print((char)223);lcd.print("C");
+  delay(2000);
+
+  desiredTimeSet = true; // NEED TO MAKE THIS VARAIBLE
+  return timeToSet;
 }
