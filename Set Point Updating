@@ -1,0 +1,38 @@
+// runTime = (millis()-startTime)*1000 
+//where do we want to define runTime?
+// Where do we want to call this loop?
+int ramp = 2;
+int soak = 3;
+int reflow = 4;
+int cooling = 5;
+pinMode(ramp,output);
+pinMode(soak,output);
+pinMode(reflow,output);
+pinMode(cooling,output);
+// ^ This part can be put in the main in the set up  
+
+if (runTime < desiredTime1)
+  setTemp = (desiredTemp1-T0)/(desiredTime1-startTime)*(runTime-T0)+T0;
+  digitalWrite(ramp,HIGH); // turns on LED for ramp phase 
+else if (runTime>desiredTime1 & runTime<desiredTime2)
+  setTemp = desiredTemp2; 
+  digitalWrite(soak,HIGH); // turns on LED for soak phase 
+else if (runTime>desiredTime2 & runTime<desiredTime3)
+  setTemp = (desiredTemp3-desiredTemp2)/(desiredTime3-desiredTime2)*(runTime-desiredTime2)+desiredTemp2
+  digitalWrite(reflow,HIGH); // turns on LED for reflow phase 
+else if (runTime>desiredTime3)
+  setTemp = 20; 
+  digitalWrite(cooling,HIGH); // turns on LED for cooling phase 
+else if (runTime > 30*60) // if it's been running for longer than 
+  lcd.clear();
+  lcd.print("WARNING:OVER TIME");
+  lcd.setCursor(0,1);
+  lcd.print("DISCONNECT POWER")
+  Serial.print("Run Time:")
+  Serial.println(runTime);
+  digitalWrite(heaterPin,LOW);
+  // not sure if this is where we want to put this safety feature
+ // This goes right before myPID.compute 
+ // PID(input = thermocouple reading, output=how aggressive to drive the heater, setpoint = setTemp)
+ 
+  
