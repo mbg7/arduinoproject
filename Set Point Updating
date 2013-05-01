@@ -1,6 +1,7 @@
 // runTime = (millis()-startTime)*1000 
 //where do we want to define runTime?
 // Where do we want to call this loop?
+// Define LEDs that tell the user what section of the reflow we are in
 int ramp = 2;
 int soak = 3;
 int reflow = 4;
@@ -14,23 +15,32 @@ pinMode(cooling,output);
 if (runTime < desiredTime1){
   setTemp = (desiredTemp1-T0)/(desiredTime1-startTime)*(runTime-T0)+T0;
   digitalWrite(ramp,HIGH); // turns on LED for ramp phase 
+  desiredTemp = desiredTemp1;
+}
 else if (runTime>desiredTime1 & runTime<desiredTime2){
   setTemp = desiredTemp2; 
-  digitalWrite(soak,HIGH);}// turns on LED for soak phase 
+  digitalWrite(soak,HIGH);}// turns on LED for soak phase
+  desiredTemp = desiredTemp2;
+}
 else if (runTime>desiredTime2 & runTime<desiredTime3){
   setTemp = (desiredTemp3-desiredTemp2)/(desiredTime3-desiredTime2)*(runTime-desiredTime2)+desiredTemp2
   digitalWrite(reflow,HIGH);} // turns on LED for reflow phase 
+  desiredTemp = desiredTemp3;
+}
 else if (runTime>desiredTime3){
   setTemp = 20; 
   digitalWrite(cooling,HIGH);} // turns on LED for cooling phase 
+  desiredTemp = 25; // room temp
+}
 else if (runTime > 30*60){ // if it's been running for longer than 
   lcd.clear();
   lcd.print("WARNING:OVER TIME");
   lcd.setCursor(0,1);
   lcd.print("DISCONNECT POWER")
-  Serial.print("Run Time:")
+  Serial.print("Run Time: ");
   Serial.println(runTime);
   digitalWrite(heaterPin,LOW);}
+}
 }
   // not sure if this is where we want to put this safety feature
   // This goes right before myPID.compute 
