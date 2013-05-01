@@ -1,4 +1,3 @@
-
 void determineReflowSection(){
     if (runTime < desiredTime1){
       setTemp = (desiredTemp1-T0)/(desiredTime1-startTime)*(runTime-T0)+T0;
