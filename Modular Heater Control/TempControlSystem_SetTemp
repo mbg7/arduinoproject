@@ -52,35 +52,35 @@ double userAdjust(double thingToAdjust, boolean tempOrTime){
     {
       thingToAdjust= thingToAdjust-50;
       display_thingUserSelected(thingToAdjust, tempOrTime);
-      break;
+      return thingToAdjust;
     }
     case btnLEFT:
     {
       thingToAdjust = thingToAdjust+50;
       display_thingUserSelected(thingToAdjust,tempOrTime);
-      break;
+      return thingToAdjust;
     }
     case btnUP:
     {
       thingToAdjust= thingToAdjust+1;
       display_thingUserSelected(thingToAdjust,tempOrTime);
-      break;
+      return thingToAdjust;
     }
     case btnDOWN:
     {
       thingToAdjust = thingToAdjust-1;
       display_thingUserSelected(thingToAdjust,tempOrTime);
-      break;
+      return thingToAdjust;
     }
     case btnSELECT:
     {
       userFinished = true;
-      break;
+      return thingToAdjust;
     }
     case btnNONE:
     {
       display_thingUserSelected(thingToAdjust,tempOrTime);
-      break;
+      return thingToAdjust;
     }
   }
   return thingToAdjust;
@@ -96,7 +96,7 @@ double setDesiredTemp()
   double tempToSet = 0;
   userFinished = false;
   while(userFinished == false){
-    userAdjust(tempToSet, true); // the "true" input tells userAdjust that this is a TEMP.
+    tempToSet = userAdjust(tempToSet, true); // the "true" input tells userAdjust that this is a TEMP.
   }
   userFinished = false;
   while(tempToSet>maxTemp || tempToSet<minTemp){ // Safety Check to make sure the user isn't selecting a temp that is too high or too low
@@ -117,7 +117,7 @@ double setDesiredTemp()
   lcd.clear();
   lcd.print("Temp Set.");
   lcd.setCursor(0,1);
-  lcd.print("Desired = ");
+  lcd.print("Desired T = ");
   lcd.print(tempToSet);lcd.print((char)223);lcd.print("C");
   delay(2000);
 
@@ -133,7 +133,7 @@ double setDesiredTime()
   double timeToSet = 0;
   userFinished = false;
   while(userFinished == false){
-    userAdjust(timeToSet, false); // the "false" input tells userAdjust that this is a TIME.
+   timeToSet= userAdjust(timeToSet, false); // the "false" input tells userAdjust that this is a TIME.
   }
   userFinished = false;
   lcd.clear();
