@@ -48,9 +48,9 @@ void display_TempTime()
   lcd.print("C");
   
   // Display the set point temperature which the controller is trying to reach.
- if (DesiredTime<=runTime) {
+ if (desiredTime<=runTime) {
   lcd.setCursor(0,2); 
-  lcd.print(DesiredTime-runTime)  
+  lcd.print(desiredTime-runTime)  
   lcd.print("s until ");
   lcd.print(desiredTemp);  
   lcd.print( (char)223);
