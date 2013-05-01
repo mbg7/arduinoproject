@@ -68,6 +68,7 @@ void loop()
         double desiredTime2 = setDesiredTime();
         double desiredTemp3 = setDesiredTemp();
         double desiredTime2 = setDesiredTime();
+        desiredTempSet = true; // The user has set all their desired values.  We don't need to run these commands again.
       }
 
         double startTime= millis();
