@@ -27,6 +27,7 @@ int heaterPin = 2; //Digital output to pin D3, a PWM pin
 // Define Global Variables
 double T0 = 0; // The temp of the oven at the start of the reflow
 double startTime = 0; // The time elapsed between restarting the Arduino and starting the reflow PID
+double runTime = 0; // How long the PID has been running
 double desiredTemp = 0; // The corner of the reflow curve that we are trying to reach
 double desiredTime = 0;
     double desiredTemp1 = 0;
@@ -64,14 +65,14 @@ void setup()
   // Define pin modes
     pinMode(readTempPin, INPUT);
     pinMode(heaterPin, OUTPUT);
-    pinMode(rampPin,OUTPUT;
+    pinMode(rampPin,OUTPUT);
     pinMode(soakPin,OUTPUT);
     pinMode(reflowPin,OUTPUT);
     pinMode(coolingPin,OUTPUT);
   // Define PID stuff
     windowStartTime = millis();
     myPID.SetOutputLimits(0, MaxOutput); /* The range ouf Output times (in ms). 0 corresponds to oven always being off;
-                                            MaxOutput correlates to the PID being driven at maximum intensity.
+                                            MaxOutput correlates to the PID being driven at maximum intensity.*/
     myPID.SetMode(AUTOMATIC);
 }
 
@@ -80,7 +81,7 @@ void loop()
   if(!OverTempAlarm){ // As long as we are not overheated...
     // Now set the desired temps and times if you haven't already.  This should only be done once per reset.  
      while(!desiredTempSet){ 
-        display_instructions);
+        display_instructions();
         desiredTemp1 = setDesiredTemp();
         desiredTime1 = setDesiredTime();
         desiredTemp2 = setDesiredTemp();
@@ -104,4 +105,3 @@ void loop()
     &setTemp, which I am pretty sure is a handle. **************/
   }
 }
-
