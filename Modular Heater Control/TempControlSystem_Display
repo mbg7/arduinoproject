@@ -1,20 +1,20 @@
 /* *************************************************************************
 This file contains the lcd display functions. 
- > display_instructions() : Instructions on how to set the desired temperature.
- > display_setTemp() : Displays the desired temp.
- > display_currentTemp() : Current temp on first line and set temp on 2nd line.
+ > display_instructions() : Instructions on how to set the desired temperature and times.
+ > display_thingUserSelectedp() : Displays the desired temp or time.
+ > display_currentTemp() : Current temp on first line and the time to desired temp on 2nd line.
 *************************************************************************** */
 
 void display_instructions()
 {
   lcd.clear();
-  lcd.print("Set desired temp:");
-  delay(2000);
+  lcd.print("Set Temps&Times.");
+  delay(2500);
   lcd.clear();
   lcd.print("Up/Down by 1"); lcd.print((char)223);lcd.print("C");
   lcd.setCursor(0,1);
   lcd.print("Lft/Rgt by 50");lcd.print((char)223);lcd.print("C");
-  delay(2000);
+  delay(2500);
   lcd.clear();
   lcd.print("Press Select");
   lcd.setCursor(0,1);
@@ -49,7 +49,7 @@ void display_currentTemp()
   
   // Display the set point temperature which the controller is trying to reach.
  if (desiredTime<=runTime) {
-  lcd.setCursor(0,2); 
+  lcd.setCursor(0,1); 
   lcd.print(desiredTime-runTime); 
   lcd.print("s until ");
   lcd.print(desiredTemp);  
