@@ -42,33 +42,34 @@ int read_LCD_buttons()
 
 /*******************************************************************************************
 This method inputs, adjusts, and then outputs thingToAdjust, which can be a time or a temp.
+Also inputs a boolean called tempOrTime, which is true if we are using a temp and false if using a time.
 *******************************************************************************************/
-double userAdjust(double thingToAdjust){ 
+double userAdjust(double thingToAdjust, boolean tempOrTime){ 
   lcd_key = read_LCD_buttons(); // read the buttons
   switch (lcd_key) // depending on which button was pushed, we perform an action
   {
     case btnRIGHT:
     {
       thingToAdjust= thingToAdjust-50;
-      display_thingUserSelected(thingToAdjust);
+      display_thingUserSelected(thingToAdjust, tempOrTime);
       break;
     }
     case btnLEFT:
     {
       thingToAdjust = thingToAdjust+50;
-      display_thingUserSelected(thingToAdjust);
+      display_thingUserSelected(thingToAdjust,tempOrTime);
       break;
     }
     case btnUP:
     {
       thingToAdjust= thingToAdjust+1;
-      display_thingUserSelected(thingToAdjust);
+      display_thingUserSelected(thingToAdjust,tempOrTime);
       break;
     }
     case btnDOWN:
     {
       thingToAdjust = thingToAdjust-1;
-      display_thingUserSelected(thingToAdjust);
+      display_thingUserSelected(thingToAdjust,tempOrTime);
       break;
     }
     case btnSELECT:
@@ -78,7 +79,7 @@ double userAdjust(double thingToAdjust){
     }
     case btnNONE:
     {
-      display_thingUserSelected(thingToAdjust);
+      display_thingUserSelected(thingToAdjust,tempOrTime);
       break;
     }
   }
@@ -95,7 +96,7 @@ double setDesiredTemp()
   double tempToSet = 0;
   userFinished = false;
   while(userFinished == false){
-    userAdjust(tempToSet);
+    userAdjust(tempToSet, true); // the "true" input tells userAdjust that this is a TEMP.
   }
   userFinished = false;
   while(tempToSet>maxTemp || tempToSetminTemp){ // Safety Check to make sure the user isn't selecting a temp that is too high or too low
@@ -109,7 +110,7 @@ double setDesiredTemp()
         lcd.clear();
         lcd.print("Select New Temp:"); delay(1500);
         while(userFinished == false){
-          userAdjust(tempToSet);
+          userAdjust(tempToSet, true); // the "true" input tells userAdjust that this is a TEMP.
         }
         userFinished = false;
   }
@@ -132,7 +133,7 @@ double setDesiredTime()
   double timeToSet = 0;
   userFinished = false;
   while(userFinished == false){
-    userAdjust(timeToSet); 
+    userAdjust(timeToSet, false); // the "false" input tells userAdjust that this is a TIME.
   }
   userFinished = false;
   lcd.clear();
