@@ -1,17 +1,3 @@
-// runTime = (millis()-startTime)*1000 
-//where do we want to define runTime?
-// Where do we want to call this loop?
-// Define LEDs that tell the user what section of the reflow we are in
-int ramp = 2;
-int soak = 3;
-int reflow = 4;
-int cooling = 5;
-pinMode(ramp,output);
-pinMode(soak,output);
-pinMode(reflow,output);
-pinMode(cooling,output);
-// ^ This part can be put in the main in the set up  
-
 
 void determineReflowSection(){
     if (runTime < desiredTime1){
