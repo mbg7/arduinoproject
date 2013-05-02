@@ -6,7 +6,9 @@
 
 %%Clear all variables
 clear all;clc
-fclose(instrfind)
+if(size(instrfind)>0)
+    fclose(instrfind)
+end
 %%Variables (Edit yourself)
 SerialPort='/dev/tty.usbmodem641'; %serial port
 foundTermination = 0;
@@ -37,10 +39,16 @@ end
 lineReading0 = fgetl(s)
 tempIndex = strfind(lineReading0, 'T');
 timeIndex = strfind(lineReading0, 't');
+T0Index = strfind(lineReading0, 'S');
 tempStr = lineReading0(1:tempIndex - 1);
 temp(1) = str2double(tempStr);
 timeStr = lineReading0(tempIndex+1:timeIndex - 1);
 time(1) = str2double(timeStr);
+T0 = str2double(lineReading0(timeIndex+1:T0Index - 1));
+t0Index = strfind(lineReading0, 's');
+t0 = str2double(lineReading0(T0Index+1:t0Index - 1));
+
+
 
 % Read desired points info
 lineReading1 = fgetl(s)
@@ -63,7 +71,7 @@ figure(1);clf; hold on
 title('Real Time Temperature Readings','FontSize',14)
 xlabel('Time (s)','FontSize',14);
 ylabel('Temperature (C)','FontSize',14);
-plot([t1 t2 t3],[T1 T2 T3],'r',t1,T1,'bo',t2,T2,'go',t3,T3,'mo'); hold on;
+plot([t0 t1 t2 t3],[T0 T1 T2 T3],'r',t0,T0,'yo',t1,T1,'bo',t2,T2,'go',t3,T3,'mo'); hold on;
 axis([0 t3+10 0 T3+50]); hold on;
 
 count = 2;
