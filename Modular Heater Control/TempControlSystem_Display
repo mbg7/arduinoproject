@@ -1,9 +1,11 @@
-/* *************************************************************************
+/* *****************************************************************************************************
 This file contains the lcd display functions. 
  > display_instructions() : Instructions on how to set the desired temperature and times.
- > display_thingUserSelectedp() : Displays the desired temp or time.
- > display_currentTemp() : Current temp on first line and the time to desired temp on 2nd line.
-*************************************************************************** */
+ > display_thingUserSelectedp() : Displays the desired temp or time, for use as the user is setting the value.
+ > display_currentTemp() : Current temp and phase on first line and the time to desired temp on 2nd line.
+             Displays a ^ if the heater is on and a - if the heater is off.  During the Cool phase, 
+             it uses the 2nd line to instruct the user to open the oven door.
+******************************************************************************************************* */
 
 void display_instructions()
 {
@@ -21,7 +23,7 @@ void display_instructions()
   lcd.print("Press Select");
   lcd.setCursor(0,1);
   lcd.print("when finished.");
-  delay(900);
+  delay(1000);
 }
 
 void display_thingUserSelected(double thingToDisplay, boolean timeOrTemp, int pointNum) // timeOrTemp is true when we are displaying a temp and false when we are displaying a time
@@ -43,35 +45,32 @@ void display_currentTemp()
 {
   lcd.clear();  // Clear the LCD
   
-  // Display current temperature.
+  // DISPLAY CURRENT TEMP
   lcd.print("T:");   
   lcd.print(currentTemp);
   lcd.print((char)223);
   lcd.print("C");
   
-  // Display the reflow phase.
+  // DISPLAY REFLOW PHASE
   lcd.setCursor(10,0);
   lcd.print(phase);
   if(phase == "Cool"){
     lcd.setCursor(0,1);lcd.print("Please Open Door");
-  }
-  if(phase != "Cool"){
-    // Display the set point temperature which the controller is trying to reach.
+  }else{
+    // DISPLAY DESIRED TEMP, temperature which the controller is trying to reach.
     lcd.setCursor(0,1); 
     lcd.print((int)desiredTime-(int)runTime); 
     lcd.print("s to ");
     lcd.print((int)desiredTemp); 
     lcd.print((char)223);
     lcd.print("C");
-    
-        if(Output>0){
-             // Debugging --> show Output
-             lcd.setCursor(14,1); lcd.print("^");
-        }
-        if(Output<=0){
-          // Debugging --> show Output
-             lcd.setCursor(14,1); lcd.print("-");
-        }
+    // DISPLAY IF ON OR OFF
+    if(Output>0){
+         lcd.setCursor(14,1); lcd.print("^");
+    }
+    if(Output<=0){
+         lcd.setCursor(14,1); lcd.print("-");
+    }
   }
    delay(1000);
 }
