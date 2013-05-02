@@ -1,7 +1,7 @@
 /* ***********************************************************************
 This file contains the PID Control function.  PID coefficients were 
-provided initially by Dr. Palmeri.  They may be improved in the future
-using the AutoTune library.
+provided initially by Dr. Palmeri.  This is the NEW PID APPROACH using 
+OUTPUTs of just 0 (off) or 1 (on)
 ************************************************************************ */
 void readTemp(){
   double currentVal = analogRead(readTempPin);  // Reading from the thermocouple pin (vals are on a range from 0 to 1023)
@@ -10,8 +10,8 @@ void readTemp(){
   Serial.println(currentTemp);
   /*  write the currentTemp to the appropriate byte of the EEPROM. 
       These values will remain there when the board is turned off. */
-}
 
+}
 
 void PIDHeaterControl()
 {
@@ -34,16 +34,9 @@ void PIDHeaterControl()
       Serial.print("OUTPUT: "); Serial.println(OUTPUT);
      
      // TURN OUTPUT PIN ON/OFF BASED ON PID OUTPUT
-      unsigned long now = millis();
-      if(now - windowStartTime > WindowSize){
-         // time to shift output period window
-          windowStartTime += WindowSize;
-      }
-      if(Output > now - windowStartTime){
-         digitalWrite(heaterPin, HIGH);  // If output is greater than the time 
-            // that has time that has elapsed from the updated window start time, 
-            // turn the heater ON
+      if(Output > 0){
+         digitalWrite(heaterPin, HIGH);  // Turn the heater on if PID gives large OUTPUT 
          Serial.println("Heater On");
-      }else digitalWrite(heaterPin, LOW); // Otherwise, keep it off.
+      }else digitalWrite(heaterPin, LOW); // Turn the heater off if PID gives small OUTPUT 
   }
 }
