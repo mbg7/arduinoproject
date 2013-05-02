@@ -119,7 +119,7 @@ double setDesiredTemp()
   lcd.setCursor(0,1);
   lcd.print("Desired T = ");
   lcd.print(tempToSet);lcd.print((char)223);lcd.print("C");
-  delay(2000);
+  delay(1000);
 
   return tempToSet;
 }
@@ -149,7 +149,7 @@ double setDesiredTime()
   lcd.setCursor(0,1);
   lcd.print("Desired t = ");
   lcd.print(timeToSet);lcd.print("s");
-  delay(2000);
+  delay(1000);
   
   return timeToSet;
 }
