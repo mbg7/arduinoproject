@@ -29,12 +29,11 @@ double startTime = 0; // The time elapsed between restarting the Arduino and sta
 double runTime = 0; // How long the PID has been running
 double desiredTemp = 0; // The corner of the reflow curve that we are trying to reach
 double desiredTime = 0;
-    double desiredTemp1 = 0;
-    double desiredTemp2 = 0;
-    double desiredTemp3 = 0;
-    double desiredTime1 = 0;
-    double desiredTime2 = 0;
-    double desiredTime3 = 0;
+    double desiredTemp1 = 0; double desiredTemp2 = 0; double desiredTemp3 = 0;
+    double desiredTime1 = 0; double desiredTime2 = 0; double desiredTime3 = 0;
+    // Temp variables for error statistics
+    double actualTemp1 = 0; double actualTemp2 = 0; double actualTemp3 = 0;
+    double actualMaxTemp = 0;
 double currentTemp = 0; //analog input converted to degrees 
 double setTemp = 0; // The desired temperature of the oven, determined by linear interpolation between desiredTemps
 String phase; // The reflow phase we are in
@@ -65,16 +64,13 @@ void setup()
   Serial.begin(9600);
   lcd.begin(16,2);
   // Define pin modes
-    pinMode(readTempPin, INPUT);
-    pinMode(heaterPin, OUTPUT);
-    pinMode(rampPin,OUTPUT);
-    pinMode(soakPin,OUTPUT);
-    pinMode(reflowPin,OUTPUT);
-    pinMode(coolingPin,OUTPUT);
+    pinMode(readTempPin, INPUT); 
+    pinMode(heaterPin, OUTPUT); 
+    pinMode(rampPin,OUTPUT); pinMode(soakPin,OUTPUT);  pinMode(reflowPin,OUTPUT); pinMode(coolingPin,OUTPUT);
   // Define PID stuff
   //  windowStartTime = millis(); // MIGHT WANT TO MOVE THIS INTO THE LOOP
-  //  myPID.SetOutputLimits(0, MaxOutput); /* The range ouf Output times (in ms). 0 corresponds to oven always being off;
-                                            MaxOutput correlates to the PID being driven at maximum intensity.*/
+  //  myPID.SetOutputLimits(0, MaxOutput); /* The range ouf Output times (in ms). 0 corresponds to oven always being off
+  //                                          MaxOutput correlates to the PID being driven at maximum intensity. */
     myPID.SetOutputLimits(0,1); // now the PID will Output either 0 (heater off) or 1 (heater 1)
     myPID.SetMode(AUTOMATIC);
 }
@@ -82,70 +78,62 @@ void setup()
 void loop()
 {
   readTemp();
-  if(!OverTempAlarm){ // As long as we are not overheated...
-    if(!OverTimeAlarm){ // As long as we have not been on for too long....
+  if(!OverTempAlarm && !OverTimeAlarm){ // As long as we are not overheated and as long as we have not been on for too long.......
       if(!ReflowComplete){ // As long as we aren't done and cooled back to room temp already...
         // Now set the desired temps and times if you haven't already.  This should only be done once per reset.  
          while(!desiredTempSet){ 
-//            display_instructions();
-//            lcd.clear();lcd.print("Set Temp 1"); delay(800);
-//            desiredTemp1 = setDesiredTemp();
-//            lcd.clear();lcd.print("Set Time 1"); delay(800);
-//            desiredTime1 = setDesiredTime();
-//            lcd.clear();lcd.print("Set Temp 2"); delay(800);
-//            desiredTemp2 = setDesiredTemp();
-//            lcd.clear();lcd.print("Set Time 2"); delay(800);
-//            desiredTime2 = setDesiredTime();
-//            lcd.clear();lcd.print("Set Temp 3"); delay(800);
-//            desiredTemp3 = setDesiredTemp();
-//            lcd.clear();lcd.print("Set Time 3"); delay(800);
-//            desiredTime3 = setDesiredTime();
-            desiredTemp1 = 150;
-            desiredTemp2 = 150;
-            desiredTemp3 = 230;
-            desiredTime1 = 64;
-            desiredTime2 = 164;
-            desiredTime3 = 204;
+            display_instructions();
+         //   lcd.clear();lcd.print("Set Temp 1"); delay(800);
+            desiredTemp1 = setDesiredTemp(1);
+         //   lcd.clear();lcd.print("Set Time 1"); delay(800);
+            desiredTime1 = setDesiredTime(1);
+       //     lcd.clear();lcd.print("Set Temp 2"); delay(800);
+            desiredTemp2 = setDesiredTemp(2);
+     //       lcd.clear();lcd.print("Set Time 2"); delay(800);
+            desiredTime2 = setDesiredTime(2);
+   //         lcd.clear();lcd.print("Set Temp 3"); delay(800);
+            desiredTemp3 = setDesiredTemp(3);
+ // lcd.clear();lcd.print("Set Time 3"); delay(800);
+            desiredTime3 = setDesiredTime(3);
+//            desiredTemp1 = 150;
+//            desiredTemp2 = 150;
+//            desiredTemp3 = 230;
+//            desiredTime1 = 150;
+//            desiredTime2 = 250;
+//            desiredTime3 = 350;
             desiredTempSet = true; // The user has set all their desired values.  We don't need to run these commands again.
-            
             double val0 = analogRead(readTempPin); //reading from thermocouple pin at start of reflow
             double volt0 = (val0/1023)*5; //map that reading to a voltage 
             T0=volt0/(0.005); // Temperature at the start of the reflow 
             startTime = millis();  // The time elapsed between restarting the Arduino and starting the reflow
             windowStartTime = millis(); // A PID variable.
-            Serial.print("Start Time: "); Serial.println(startTime);
           }
           
         // THIS GETS RUN DURING EVERY LOOP
-        if(!checkUserInterrupt() ){
+//        if(desiredTempSet && !checkUserInterrupt() ){
           runTime = (millis()-startTime)/1000; // Determine how long the PID has been running. In seconds.
-          Serial.print("Run Time: "); Serial.println(runTime);
           determineReflowSection();  // Determine if we are in ramp, soak, reflow, or cooling
-          if(!checkUserInterrupt()){
+   //       if(!checkUserInterrupt()){
             PIDHeaterControl(); //Monitor & control the temp
-          }
-        }
-        if(currentTemp<=20 && runTime > desiredTime3) ReflowComplete = true; 
+  //        }
+  //      }
+        if(currentTemp<=28 && runTime > desiredTime3) ReflowComplete = true; 
       }
       
       if(ReflowComplete){
         // Now the reflow is complete (or the user interrupted and stopped it)
-          else digitalWrite(heaterPin, LOW);
+          digitalWrite(heaterPin, LOW);
           lcd.clear(); lcd.print("Reflow Complete!");
           lcd.setCursor(0,1);lcd.print("Temp: ");lcd.print(currentTemp);lcd.print((char)223);lcd.print("C");
         // Flash all of the LEDs for 5 seconds
        for(int k = 0; k>100;k++){
-          digitalWrite(rampPin,HIGH);
-          digitalWrite(soakPin,HIGH);
-          digitalWrite(reflowPin,HIGH); 
-          digitalWrite(coolingPin,HIGH);
+          digitalWrite(rampPin,HIGH); digitalWrite(soakPin,HIGH); digitalWrite(reflowPin,HIGH); digitalWrite(coolingPin,HIGH);
           delay(50);
-          digitalWrite(rampPin,LOW);
-          digitalWrite(soakPin,LOW);
-          digitalWrite(reflowPin,LOW); 
-          digitalWrite(coolingPin,LOW);
+          digitalWrite(rampPin,LOW);  digitalWrite(soakPin,LOW);  digitalWrite(reflowPin,LOW);  digitalWrite(coolingPin,LOW);
         } 
+        delay(1000);
+        Statistics();
       } 
-    }
   }
 }
+
