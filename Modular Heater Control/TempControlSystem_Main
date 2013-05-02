@@ -10,6 +10,8 @@ Future functionality:
       (1) Improve PID using AutoTune
 ******************************************************************************** */
 #include <PID_v1.h>
+#include <EEPROM.h>
+int addr = 0; // EEPROM byte to write to
 #include <LiquidCrystal.h>
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 // Define pins
@@ -78,6 +80,7 @@ void setup()
 
 void loop()
 {
+  readTemp();
   if(!OverTempAlarm){ // As long as we are not overheated...
     if(!OverTimeAlarm){ // As long as we have not been on for too long....
       if(!ReflowComplete){ // As long as we aren't done and cooled back to room temp already...
@@ -103,27 +106,31 @@ void loop()
             T0=volt0/(0.005); // Temperature at the start of the reflow 
             startTime= millis();  // The time elapsed between restarting the Arduino and starting the reflow
           }
-        if(!(phase=="Cool")){ // As long as we aren't already in the cooling phase....
-            runTime = (millis()-startTime)*1000; // Determine how long the PID has been running. In seconds.
-            determineReflowSection();  // Determine if we are in ramp, soak, reflow, or cooling
-            PIDHeaterControl(); //Monitor & control the temp
-        }
-        if(phase=="Cool"){
-          readTemp();
-          lcd.clear(); lcd.print("Cooling");
-          lcd.setCursor(0,1);lcd.print("Temp: ");lcd.print(currentTemp);lcd.print((char)223);lcd.print("C");
-        }
-        if(currentTemp<=28) ReflowComplete = true; 
+        
+        runTime = (millis()-startTime)*1000; // Determine how long the PID has been running. In seconds.
+        determineReflowSection();  // Determine if we are in ramp, soak, reflow, or cooling
+        PIDHeaterControl(); //Monitor & control the temp
+        
+        if(currentTemp<=28 && runTime > desiredTime3) ReflowComplete = true; 
       }
       
       if(ReflowComplete){
         // Now the reflow is complete
-          readTemp();
-          lcd.clear(); lcd.print("Cooling");
+          lcd.clear(); lcd.print("Reflow Complete!");
           lcd.setCursor(0,1);lcd.print("Temp: ");lcd.print(currentTemp);lcd.print((char)223);lcd.print("C");
-        // SOMETHING HAPPENS WITH A BUZZER MAYBE?
+        // Flash all of the LEDs
+        for(int k = 0; k>100;k++){
+          digitalWrite(rampPin,HIGH);
+          digitalWrite(soakPin,HIGH);
+          digitalWrite(reflowPin,HIGH); 
+          digitalWrite(coolingPin,HIGH);
+          delay(50);
+          digitalWrite(rampPin,LOW);
+          digitalWrite(soakPin,LOW);
+          digitalWrite(reflowPin,LOW); 
+          digitalWrite(coolingPin,LOW);
+        } 
       } 
     }
   }
-
 }
