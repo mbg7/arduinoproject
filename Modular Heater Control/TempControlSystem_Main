@@ -48,8 +48,8 @@ boolean OverTimeAlarm = false; // Has the heater been on for too long?
 boolean ReflowComplete = false; // Is the reflow cycle done? Is it back to room temp?
 
 // Specify PID parameters and variables
-double kp = 2; //(proportional gain - difference between the current temperature and the set point)
-double ki = 0.1; //(integral gain - proportional to the magnitude and duration of error)
+double kp = 2; //(proportional gain - difference between the current temperature and the set point) (2, 0.1, 5)
+double ki = .1; //(integral gain - proportional to the magnitude and duration of error)
 double kd = 5; //(derivative gain - slope of the error over time)
 double Output;
 int WindowSize = 500; //ms
@@ -86,32 +86,40 @@ void loop()
       if(!ReflowComplete){ // As long as we aren't done and cooled back to room temp already...
         // Now set the desired temps and times if you haven't already.  This should only be done once per reset.  
          while(!desiredTempSet){ 
-            display_instructions();
-            lcd.clear();lcd.print("Set Temp 1"); delay(800);
-            desiredTemp1 = setDesiredTemp();
-            lcd.clear();lcd.print("Set Time 1"); delay(800);
-            desiredTime1 = setDesiredTime();
-            lcd.clear();lcd.print("Set Temp 2"); delay(800);
-            desiredTemp2 = setDesiredTemp();
-            lcd.clear();lcd.print("Set Time 2"); delay(800);
-            desiredTime2 = setDesiredTime();
-            lcd.clear();lcd.print("Set Temp 3"); delay(800);
-            desiredTemp3 = setDesiredTemp();
-            lcd.clear();lcd.print("Set Time 3"); delay(800);
-            desiredTime3 = setDesiredTime();
+//            display_instructions();
+//            lcd.clear();lcd.print("Set Temp 1"); delay(800);
+//            desiredTemp1 = setDesiredTemp();
+//            lcd.clear();lcd.print("Set Time 1"); delay(800);
+//            desiredTime1 = setDesiredTime();
+//            lcd.clear();lcd.print("Set Temp 2"); delay(800);
+//            desiredTemp2 = setDesiredTemp();
+//            lcd.clear();lcd.print("Set Time 2"); delay(800);
+//            desiredTime2 = setDesiredTime();
+//            lcd.clear();lcd.print("Set Temp 3"); delay(800);
+//            desiredTemp3 = setDesiredTemp();
+//            lcd.clear();lcd.print("Set Time 3"); delay(800);
+//            desiredTime3 = setDesiredTime();
+            desiredTemp1 = 150;
+            desiredTemp2 = 150;
+            desiredTemp3 = 230;
+            desiredTime1 = 64;
+            desiredTime2 = 164;
+            desiredTime3 = 204;
             desiredTempSet = true; // The user has set all their desired values.  We don't need to run these commands again.
             
             double val0 = analogRead(readTempPin); //reading from thermocouple pin at start of reflow
             double volt0 = (val0/1023)*5; //map that reading to a voltage 
             T0=volt0/(0.005); // Temperature at the start of the reflow 
-            startTime= millis();  // The time elapsed between restarting the Arduino and starting the reflow
+            startTime = millis();  // The time elapsed between restarting the Arduino and starting the reflow
+            Serial.print("Start Time: "); Serial.println(startTime);
           }
         
-        runTime = (millis()-startTime)*1000; // Determine how long the PID has been running. In seconds.
+        runTime = (millis()-startTime)/1000; // Determine how long the PID has been running. In seconds.
+        Serial.print("Run Time: "); Serial.println(runTime);
         determineReflowSection();  // Determine if we are in ramp, soak, reflow, or cooling
         PIDHeaterControl(); //Monitor & control the temp
         
-        if(currentTemp<=28 && runTime > desiredTime3) ReflowComplete = true; 
+        if(currentTemp<=20) ReflowComplete = true; 
       }
       
       if(ReflowComplete){
