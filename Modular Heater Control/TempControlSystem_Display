@@ -53,12 +53,14 @@ void display_currentTemp()
   lcd.setCursor(11,0);
   lcd.print(phase);
   
-  // Display the set point temperature which the controller is trying to reach.
-  lcd.setCursor(0,1); 
-  lcd.print((int)desiredTime-(int)runTime); 
-  lcd.print("s to ");
-  lcd.print((int)desiredTemp); 
-  lcd.print((char)223);
-  lcd.print("C");
-  delay(1000);
+  if(phase != "Cool"){
+    // Display the set point temperature which the controller is trying to reach.
+    lcd.setCursor(0,1); 
+    lcd.print((int)desiredTime-(int)runTime); 
+    lcd.print("s to ");
+    lcd.print((int)desiredTemp); 
+    lcd.print((char)223);
+    lcd.print("C");
+    delay(1000);
+  }
 }
