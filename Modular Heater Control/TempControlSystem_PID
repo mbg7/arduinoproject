@@ -12,9 +12,9 @@ void readTemp(){
   }
   runTime = (millis()-startTime)/1000; // Determine how long the PID has been running. In seconds.
   Serial.print(currentTemp, DEC);
-  Serial.print("T   ");
+  Serial.print("T");
   Serial.print(runTime, DEC);
-  Serial.print("t");
+  Serial.print("t \n");
   /*  write the currentTemp to the appropriate byte of the EEPROM. 
       These values will remain there when the board is turned off. */
 
@@ -38,7 +38,6 @@ void PIDHeaterControl()
       display_currentTemp();
       myPID.Compute();  // Takes in the k coefficients, currentTemp, setTemp, and magically determines Output, 
                         //     a measure of "how hard we want to drive the heater."
-     Serial.print("       Output: ");Serial.println(Output);
      // TURN OUTPUT PIN ON/OFF BASED ON PID OUTPUT
       if(Output > 0){
          digitalWrite(heaterPin, HIGH);  // Turn the heater on if PID gives large OUTPUT 
