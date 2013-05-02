@@ -1,20 +1,25 @@
 /* ******************************************************************************
 tempController.ino : This function is the setup & loop of the Temp Control System. 
-1st, It calls files from DisplayFunctions.ino, HeaterControl.ino, and SetTemp.
-2nd, prompts the user to adjust the set point of the temperature controller. 
-3rd, uses a PID control system to reach and maintain the set temperature in the output.
-If the maxTemp is exceeded, the screen locks out with a warning and the output 
-    is locked to off position, with the PID blocked off.  To recover from an 
-    overTempAlarm state, the user must reset the controller.
-Future functionality: 
-      (1) Improve PID using AutoTune
+ > It calls files from DeterminePhase.ino, Display.ino, PID.ino, SetTemp.ino, and Statistics.ino
+ > It prompts the user to adjust the set points of the reflow curve.  Users cannot input temperatures\
+       too high or too low, and cannot input negative temperatures.
+ > It uses a PID control system to reach and maintain the set temperatures of the curve.  It uses aggressive
+       coefficients at the beginning of slopes, and more sensitive coefficients closer to the top.
+ > It has functionality to light LEDs to indicate reflow phase.
+ > Once reflow is complete, it flashes all the phase LEDs and displays statistics on the accuracy of the set points and the peak temp
+ > Safety Features: 
+       (1) OverTempAlarm: if maxTemp is exceeded, the screen locks out with a warning and the output 
+          is locked to off position, with the PID blocked off.  To recover from an 
+          overTempAlarm state, the user must reset the controller.
+       (2) OverTimeAlarm: if the PID is left runnnig for more than 15 minutes, the same reaction is given as above.
+       (3) User Interrupt: the user can stop heating and lock out the Arduino by pressing Select.  
+          A hard reset is required to recover from an interrupt.
+       (4) Burn Warning: if the temp is above 100C, red LEDs are lit to warn the user not to touch
 ******************************************************************************** */
 #include <PID_v1.h>
-#include <EEPROM.h>
-int addr = 0; // EEPROM byte to write to
 #include <LiquidCrystal.h>
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
-// Define pins
+// DEFINE PINS
 int readTempPin = A5; //Analog input from pin A5
 int heaterPin = 2; //Digital output to pin D2, a PWM pin
     // Define pins LEDs that tell the user what section of the reflow we are in
@@ -25,7 +30,7 @@ int heaterPin = 2; //Digital output to pin D2, a PWM pin
     // Define the LEDs that warn the user against being burned
     int RedLEDsPin = 1; // is this pin allowed?
 
-// Define Global Variables
+// DEFINE GLOBAL VARIABLES
 double T0 = 0; // The temp of the oven at the start of the reflow
 double startTime = 0; // The time elapsed between restarting the Arduino and starting the reflow PID
 double runTime = 0; // How long the PID has been running
@@ -40,7 +45,7 @@ double currentTemp = 0; //analog input converted to degrees
 double setTemp = 0; // The desired temperature of the oven, determined by linear interpolation between desiredTemps
 String phase; // The reflow phase we are in
 
-// Define safety feature variables
+// DEFINE SAFETY FEATURE CONDITIONS
 double maxTemp = 270; // Max allowed temp. Signal alarm if temp ever exceeds this.
 double minTemp = 25; // Room temperature
 boolean desiredTempSet = false; // Have the desired temps and times been set yet?
@@ -48,19 +53,14 @@ boolean OverTempAlarm = false; // Has the temperature exceeded maxTemp?
 boolean OverTimeAlarm = false; // Has the heater been on for too long?
 boolean ReflowComplete = false; // Is the reflow cycle done? Is it back to room temp?
 
-// Specify PID parameters and variables
-
+// SPECIFY PID PARAMETERS & VARIABLES
 double kp = 8;//(1.2)*(90/40); //(proportional gain - difference between the current temperature and the set point) (2, 0.1, 5)
 double ki = 10;//(.6)*(90/40^2); //(integral gain - proportional to the magnitude and duration of error)
 double kd = 5;//(.6)*(90); //(derivative gain - slope of the error over time)
 double Output;
-int WindowSize = 500; //ms
-unsigned long windowStartTime;
 PID myPID(&currentTemp, &Output, &setTemp,kp,ki,kd,DIRECT);
-int MaxRelayFrequency = 20; //  The maximum frequency at which we want to tell our SSR to oscillate (in ms).
-int MaxOutput = (1000-WindowSize*MaxRelayFrequency)/MaxRelayFrequency; /* This is the maximum output (in ms) that 
-                                                                          we can have given our window size without
-                                                                          exceeding MaxRelayFrequency. */
+
+
 
 void setup()
 {
@@ -80,63 +80,66 @@ void loop()
   readTemp();
   if(!OverTempAlarm && !OverTimeAlarm && !checkUserInterrupt()){ // As long as we are not overheated and as long as we have not been on for too long.......
       if(!checkUserInterrupt() && !ReflowComplete){ // As long as we aren't done and cooled back to room temp already...
-        // Now set the desired temps and times if you haven't already.  This should only be done once per reset.  
-         while(!desiredTempSet){ 
-            display_instructions();
-//            desiredTemp1 = setDesiredTemp(1);
-//            desiredTime1 = setDesiredTime(1);
-//            desiredTemp2 = setDesiredTemp(2);
-//            desiredTime2 = setDesiredTime(2);
-//            desiredTemp3 = setDesiredTemp(3);
-//            desiredTime3 = setDesiredTime(3);
-         // HEATER TESTING
-            desiredTemp1 = 150;
-            desiredTemp2 = 150;
-            desiredTemp3 = 230;
-            desiredTime1 = 200;
-            desiredTime2 = 300;
-            desiredTime3 = 400;
-            // BREADBOARD TESTING
-                  //            desiredTemp1 = 10;
-                  //            desiredTemp2 = 10;
-                  //            desiredTemp3 = 20;
-                  //            desiredTime1 = 10;
-                  //            desiredTime2 = 15;
-                  //            desiredTime3 = 20;
-
-            // Write the sequence to the Serial that tells MATLAB what the desired set points are
-            Serial.print(desiredTemp1);Serial.print("A");Serial.print(desiredTime1);Serial.print("B");
-            Serial.print(desiredTemp2);Serial.print("C");Serial.print(desiredTime2);Serial.print("D");
-            Serial.print(desiredTemp3);Serial.print("E");Serial.print(desiredTime3);Serial.println("F");
-           
-            desiredTempSet = true; // The user has set all their desired values.  We don't need to run these commands again.
-            double val0 = analogRead(readTempPin); //reading from thermocouple pin at start of reflow
-            double volt0 = (val0/1023)*5; //map that reading to a voltage 
-            T0=volt0/(0.005); // Temperature at the start of the reflow 
-            startTime = millis();  // The time elapsed between restarting the Arduino and starting the reflow
-          }
+                  // Now set the desired temps and times if you haven't already.  This should only be done once per reset.  
+                   while(!desiredTempSet){ 
+                      display_instructions();
+                      desiredTemp1 = setDesiredTemp(1); lcd.setCursor(11,1);lcd.print("Set."); delay(500);
+                      desiredTime1 = setDesiredTime(1); lcd.setCursor(11,1);lcd.print("Set."); delay(500);
+                      desiredTemp2 = setDesiredTemp(2); lcd.setCursor(11,1);lcd.print("Set."); delay(500);
+                      desiredTime2 = setDesiredTime(2); lcd.setCursor(11,1);lcd.print("Set."); delay(500);
+                      desiredTemp3 = setDesiredTemp(3); lcd.setCursor(11,1);lcd.print("Set."); delay(500);
+                      desiredTime3 = setDesiredTime(3); lcd.setCursor(11,1);lcd.print("Set."); delay(500);
+                       // HEATER TESTING
+//                                          desiredTemp1 = 150;
+//                                          desiredTemp2 = 150;
+//                                          desiredTemp3 = 230;
+//                                          desiredTime1 = 200;
+//                                          desiredTime2 = 300;
+//                                          desiredTime3 = 400;
+                      // BREADBOARD TESTING
+//                                          desiredTemp1 = 10;
+//                                          desiredTemp2 = 10;
+//                                          desiredTemp3 = 20;
+//                                          desiredTime1 = 10;
+//                                          desiredTime2 = 15;
+//                                          desiredTime3 = 20;
           
-        // THIS GETS RUN DURING EVERY LOOP
-        if(desiredTempSet && !checkUserInterrupt() && !ReflowComplete){
-          runTime = (millis()-startTime)/1000; // Determine how long the PID has been running. In seconds.
-          determineReflowSection();  // Determine if we are in ramp, soak, reflow, or cooling
-          if(!checkUserInterrupt() && !ReflowComplete ){
-            
-            if(  ((phase == "Ramp") && (runTime < desiredTime1/2)) || ((phase == "Reflow") && (runTime <  (desiredTime3 - (desiredTime3-desiredTime2)/2) )) ){
-             // Use aggresive coefficients for first half of Ramp and Reflow
-                kp = 8;
-                ki = 10;
-                kd = 5;
-            }else{
-                // use steady state coefficients
-                kp = 1;
-                ki = .05;
-                kd = 4;
-              }
-              PIDHeaterControl(); //Monitor & control the temp
-            }
-          }
+                      // WRITE DESIRED POINTS TO MATLAB using sequence to the Serial
+                      Serial.print(desiredTemp1);Serial.print("A");Serial.print(desiredTime1);Serial.print("B");
+                      Serial.print(desiredTemp2);Serial.print("C");Serial.print(desiredTime2);Serial.print("D");
+                      Serial.print(desiredTemp3);Serial.print("E");Serial.print(desiredTime3);Serial.println("F");
+                     
+                     // START TIME CALCULATIONS
+                      desiredTempSet = true; // The user has set all their desired values.  We don't need to run these commands again.
+                      double val0 = analogRead(readTempPin); //reading from thermocouple pin at start of reflow
+                      double volt0 = (val0/1023)*5; //map that reading to a voltage 
+                      T0=volt0/(0.005); // Temperature at the start of the reflow 
+                      startTime = millis();  // The time elapsed between restarting the Arduino and starting the reflow
+                    }
+                    
+                  // THIS GETS RUN DURING EVERY LOOP
+                  if(desiredTempSet && !checkUserInterrupt() && !ReflowComplete){
+                        runTime = (millis()-startTime)/1000; // Determine how long the PID has been running. In seconds.
+                        determineReflowSection();  // Determine if we are in ramp, soak, reflow, or cooling
+                        if(!checkUserInterrupt() && !ReflowComplete ){
+                              // If we are at the first half of a ramp or reflow...
+                              if(  ((phase == "Ramp") && (runTime < desiredTime1/1.5)) || ((phase == "Reflow") && (runTime <  (desiredTime3 - (desiredTime3-desiredTime2)/3) )) ){
+                                 // Use aggresive coefficients for first half of Ramp and Reflow
+                                    kp = 8;
+                                    ki = 10;
+                                    kd = 5;
+                               }
+                              else{ // use steady state coefficients
+                                    kp = 1;
+                                    ki = .5;
+                                    kd = 4;
+                                }
+                               // MONITOR & CONTROL TEMP
+                                PIDHeaterControl(); 
+                          }
+                    }
         }
+        // We have completed the reflow section if the temp is down to room and the time has passed the third set point
         if(currentTemp<=28 && runTime > desiredTime3) ReflowComplete = true; 
       }
       
@@ -157,3 +160,5 @@ void loop()
         Statistics();
       } 
   }
+
+
