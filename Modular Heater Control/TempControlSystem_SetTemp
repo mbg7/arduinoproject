@@ -44,42 +44,45 @@ int read_LCD_buttons()
 This method inputs, adjusts, and then outputs thingToAdjust, which can be a time or a temp.
 Also inputs a boolean called tempOrTime, which is true if we are using a temp and false if using a time.
 *******************************************************************************************/
-double userAdjust(double thingToAdjust, boolean tempOrTime){ 
+double userAdjust(double thingToAdjust, boolean tempOrTime, int pointN){ 
   lcd_key = read_LCD_buttons(); // read the buttons
   switch (lcd_key) // depending on which button was pushed, we perform an action
   {
     case btnRIGHT:
     {
-      thingToAdjust= thingToAdjust-50;
-      display_thingUserSelected(thingToAdjust, tempOrTime);
+      thingToAdjust= thingToAdjust+50;
+      display_thingUserSelected(thingToAdjust, tempOrTime, pointN);
       return thingToAdjust;
     }
     case btnLEFT:
     {
-      thingToAdjust = thingToAdjust+50;
-      display_thingUserSelected(thingToAdjust,tempOrTime);
+      thingToAdjust = thingToAdjust-50;
+      display_thingUserSelected(thingToAdjust,tempOrTime,pointN);
       return thingToAdjust;
     }
     case btnUP:
     {
       thingToAdjust= thingToAdjust+1;
-      display_thingUserSelected(thingToAdjust,tempOrTime);
+      display_thingUserSelected(thingToAdjust,tempOrTime,pointN);
       return thingToAdjust;
     }
     case btnDOWN:
     {
       thingToAdjust = thingToAdjust-1;
-      display_thingUserSelected(thingToAdjust,tempOrTime);
+      display_thingUserSelected(thingToAdjust,tempOrTime,pointN);
       return thingToAdjust;
     }
     case btnSELECT:
     {
+      Serial.println("btnSELECT is pressed");
       userFinished = true;
+      Serial.print("thingToAdjust: ");Serial.println(thingToAdjust);
+      delay(40
       return thingToAdjust;
     }
     case btnNONE:
     {
-      display_thingUserSelected(thingToAdjust,tempOrTime);
+      display_thingUserSelected(thingToAdjust,tempOrTime,pointN);
       return thingToAdjust;
     }
   }
@@ -91,15 +94,18 @@ double userAdjust(double thingToAdjust, boolean tempOrTime){
 This method makes a variable tempToSet, asks the user to adjust it, and then outputs that 
 tempToSet.  It does not let the user select temps that are too hot or too cold.
 *******************************************************************************************/
-double setDesiredTemp()
+double setDesiredTemp(int pointNum) // pointNum is the desired point we are working on (1, 2, or 3)
 {
-  double tempToSet = 0;
+  double tempToSet = 0.00;
   userFinished = false;
   while(userFinished == false){
-    tempToSet = userAdjust(tempToSet, true); // the "true" input tells userAdjust that this is a TEMP.
+    tempToSet = userAdjust(tempToSet, true, pointNum); // the "true" input tells userAdjust that this is a TEMP.
+    Serial.print(pointNum);Serial.print("TempToSet: "); Serial.println(tempToSet);
   }
   userFinished = false;
+  Serial.print(pointNum);Serial.print("TempToSetSAFETYCHECK: "); Serial.println(tempToSet);
   while(tempToSet>maxTemp || tempToSet<minTemp){ // Safety Check to make sure the user isn't selecting a temp that is too high or too low
+  Serial.print(pointNum);Serial.print("TempToSetSAFETYCHECK_FAILED: "); Serial.println(tempToSet);
         lcd.clear();
         lcd.print("Invalid Temp!"); delay(2000);
         lcd.clear();
@@ -110,17 +116,10 @@ double setDesiredTemp()
         lcd.clear();
         lcd.print("Select New Temp:"); delay(1500);
         while(userFinished == false){
-          userAdjust(tempToSet, true); // the "true" input tells userAdjust that this is a TEMP.
+          tempToSet = userAdjust(tempToSet, true,pointNum); // the "true" input tells userAdjust that this is a TEMP.
         }
         userFinished = false;
   }
-  lcd.clear();
-  lcd.print("Temp Set.");
-  lcd.setCursor(0,1);
-  lcd.print("Desired T = ");
-  lcd.print(tempToSet);lcd.print((char)223);lcd.print("C");
-  delay(1000);
-
   return tempToSet;
 }
 
@@ -128,28 +127,22 @@ double setDesiredTemp()
 /*******************************************************************************************
 This method makes a variable timeToSet, asks the user to adjust it, and then outputs that timeToSet.
 *******************************************************************************************/
-double setDesiredTime()
+double setDesiredTime(int pointNumt) // pointNum is the desired point we are working on (1, 2, or 3)
 {
   double timeToSet = 0;
   userFinished = false;
   while(userFinished == false){
-   timeToSet= userAdjust(timeToSet, false); // the "false" input tells userAdjust that this is a TIME.
+   timeToSet= userAdjust(timeToSet, false,pointNumt); // the "false" input tells userAdjust that this is a TIME.
   }
   userFinished = false;
   while(timeToSet < 0){
     lcd.clear();lcd.print("No time < 0.");
     lcd.setCursor(0,1);lcd.print("Reset time.");
     while(userFinished == false){
-        userAdjust(timeToSet, false); // the "false" input tells userAdjust that this is a TIME.
+       timeToSet = userAdjust(timeToSet, false,pointNumt); // the "false" input tells userAdjust that this is a TIME.
     } 
     userFinished = false;
   }
-  lcd.clear();
-  lcd.print("Time Set.");
-  lcd.setCursor(0,1);
-  lcd.print("Desired t = ");
-  lcd.print(timeToSet);lcd.print("s");
-  delay(1000);
   
   return timeToSet;
 }
@@ -167,7 +160,7 @@ boolean checkUserInterrupt(){
       delay(800);
       /* Wait 5 seconds for the user to continue the heating.  If they don't continue within
          5 seconds, they will have to reset the Arduino if they want to restart the reflow. */
-      for(k=0;k=100;k++){ 
+      for(int k=0;k=100;k++){ 
           delay(50);
           if(read_LCD_buttons() == btnSELECT){
               lcd.clear(); lcd.print("CONTINUE REFLOW"); delay(800);
@@ -178,5 +171,5 @@ boolean checkUserInterrupt(){
               return true;
           }
       }
-  }
+  }else return false; 
 }
