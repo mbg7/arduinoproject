@@ -11,12 +11,16 @@ void readTemp(){
     actualMaxTemp = currentTemp;
   }
   runTime = (millis()-startTime)/1000; // Determine how long the PID has been running. In seconds.
+  
+  // Send the temp and time values to MATLAB
   Serial.print(currentTemp, DEC);
   Serial.print("T");
   Serial.print(runTime, DEC);
-  Serial.print("t \n");
-  /*  write the currentTemp to the appropriate byte of the EEPROM. 
-      These values will remain there when the board is turned off. */
+  Serial.print("t");
+  Serial.print(T0, DEC);
+  Serial.print("S");
+  Serial.print(startTime, DEC);
+  Serial.print("S  \n");
   
   // If the temp is above 100C, warn the user against burns by turning on the red LEDs
   if(currentTemp >=100){
@@ -26,17 +30,18 @@ void readTemp(){
 
 void PIDHeaterControl()
 {
+  readTemp();
  // CHECK OVERTEMP CONDITION
-//  if(currentTemp>=maxTemp){   // If we have exeeded the max temp limit, alert user and turn off oven.
-//      lcd.clear();
-//      lcd.print("WARNING: TOO HOT!");
-//      lcd.setCursor(0,1);
-//      lcd.print("DISCONNECT PWR"); 
-//      Serial.print("OVERHEAT TEMP: "); 
-//      Serial.println(currentTemp);
-//      digitalWrite(heaterPin, LOW); // Turn off the heater
-//      OverTempAlarm = true;  // Enter the OverTempAlarm state --> this locks up the controller until the user resets
-//   }
+  if(currentTemp>=maxTemp){   // If we have exeeded the max temp limit, alert user and turn off oven.
+      lcd.clear();
+      lcd.print("WARNING: TOO HOT!");
+      lcd.setCursor(0,1);
+      lcd.print("DISCONNECT PWR"); 
+      Serial.print("OVERHEAT TEMP: "); 
+      Serial.println(currentTemp);
+      digitalWrite(heaterPin, LOW); // Turn off the heater
+      OverTempAlarm = true;  // Enter the OverTempAlarm state --> this locks up the controller until the user resets
+   }
   
   if(!OverTempAlarm){
       display_currentTemp();
