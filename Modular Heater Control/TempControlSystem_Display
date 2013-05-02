@@ -21,7 +21,7 @@ void display_instructions()
   lcd.print("Press Select");
   lcd.setCursor(0,1);
   lcd.print("when finished.");
-  delay(2000);
+  delay(900);
 }
 
 void display_thingUserSelected(double thingToDisplay, boolean timeOrTemp, int pointNum) // timeOrTemp is true when we are displaying a temp and false when we are displaying a time
@@ -52,7 +52,9 @@ void display_currentTemp()
   // Display the reflow phase.
   lcd.setCursor(10,0);
   lcd.print(phase);
-  
+  if(phase == "Cool"){
+    lcd.setCursor(0,1);lcd.print("Please Open Door");
+  }
   if(phase != "Cool"){
     // Display the set point temperature which the controller is trying to reach.
     lcd.setCursor(0,1); 
@@ -70,9 +72,6 @@ void display_currentTemp()
           // Debugging --> show Output
              lcd.setCursor(14,1); lcd.print("-");
         }
-          
-
-    
-    delay(1000);
   }
+   delay(1000);
 }
