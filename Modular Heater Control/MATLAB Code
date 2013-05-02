@@ -1,0 +1,99 @@
+%%real time data plot from a serial port 
+% This matlab script is for ploting a graph by accessing serial port data in
+% real time. 
+% Original Author: Moidu thavot.(downloaded)
+% Edited by Inka Johnson
+
+%%Clear all variables
+clear all;clc
+fclose(instrfind)
+%%Variables (Edit yourself)
+SerialPort='/dev/tty.usbmodem641'; %serial port
+foundTermination = 0;
+%%Set up the serial port object
+s = serial(SerialPort)
+set(s,'BaudRate',9600);
+% set(s,'BufferSize',1024);
+%s.BufferSize = 1024;
+fopen(s)
+
+
+while s.BytesAvailable<(0)
+    Close_and_reopen=1;
+    fclose(s);
+    delete(s);
+    clear s;
+    fclose(instrfind);
+    SerialPort='/dev/tty.usbmodem641'; %serial port
+    foundTermination = 0;
+    s = serial(SerialPort);
+    set(s,'BaudRate',9600);
+    % set(s,'BufferSize',1024);
+    %s.BufferSize = 1024;
+    fopen(s);
+end
+
+% Read temp and time data
+lineReading0 = fgetl(s)
+tempIndex = strfind(lineReading0, 'T');
+timeIndex = strfind(lineReading0, 't');
+tempStr = lineReading0(1:tempIndex - 1);
+temp(1) = str2double(tempStr);
+timeStr = lineReading0(tempIndex+1:timeIndex - 1);
+time(1) = str2double(timeStr);
+
+% Read desired points info
+lineReading1 = fgetl(s)
+T1index = strfind(lineReading1,'A');
+t1index = strfind(lineReading1,'B');
+T2index = strfind(lineReading1,'C');
+t2index = strfind(lineReading1,'D');
+T3index = strfind(lineReading1,'E');
+t3index = strfind(lineReading1,'F');
+
+T1 = str2double(lineReading1(1:T1index-1));
+t1 = str2double(lineReading1(T1index+1:t1index - 1));
+T2 = str2double(lineReading1(t1index+1:T2index-1));
+t2 = str2double(lineReading1(T2index+1:t2index - 1));
+T3 = str2double(lineReading1(t2index+1:T3index-1));
+t3 = str2double(lineReading1(T3index+1:t3index - 1));
+
+% Plot the reflow curve
+figure(1);clf; hold on
+title('Real Time Temperature Readings','FontSize',14)
+xlabel('Time (s)','FontSize',14);
+ylabel('Temperature (C)','FontSize',14);
+plot([t1 t2 t3],[T1 T2 T3],'r',t1,T1,'bo',t2,T2,'go',t3,T3,'mo'); hold on;
+axis([0 t3+10 0 T3+50]); hold on;
+
+count = 2;
+while foundTermination==0
+    %%Serial data accessing 
+     lineReading = fgetl(s)
+     terminationIndex = strfind(lineReading,'XXXXX');
+     if size(terminationIndex) > 0
+         foundTermination = 1;
+         break;
+     end
+     tempIndex = strfind(lineReading, 'T');
+     timeIndex = strfind(lineReading, 't');
+     tempStr = lineReading(1:tempIndex - 1);
+     temp(count) = str2double(tempStr);
+     timeStr = lineReading(tempIndex+1:timeIndex - 1);
+     time(count) = str2double(timeStr);
+     figure(1);
+     plot(time, temp,'b.'); hold on;
+     if max(time) > t3 
+         figure(1);
+         axis([0 max(temp) 0 t3]); hold on;
+     end
+     pause(time(count)-time(count-1));
+     count = count+1;
+end
+
+figure(1);hold off
+
+%% Clean up the serial port
+fclose(s);
+delete(s);
+clear s;
