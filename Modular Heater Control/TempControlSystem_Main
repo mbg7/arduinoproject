@@ -50,8 +50,8 @@ boolean ReflowComplete = false; // Is the reflow cycle done? Is it back to room 
 
 // Specify PID parameters and variables
 
-double kp = 2;//(1.2)*(90/40); //(proportional gain - difference between the current temperature and the set point) (2, 0.1, 5)
-double ki = .1;//(.6)*(90/40^2); //(integral gain - proportional to the magnitude and duration of error)
+double kp = 8;//(1.2)*(90/40); //(proportional gain - difference between the current temperature and the set point) (2, 0.1, 5)
+double ki = 10;//(.6)*(90/40^2); //(integral gain - proportional to the magnitude and duration of error)
 double kd = 5;//(.6)*(90); //(derivative gain - slope of the error over time)
 double Output;
 int WindowSize = 500; //ms
@@ -71,10 +71,7 @@ void setup()
     pinMode(heaterPin, OUTPUT); 
     pinMode(rampPin,OUTPUT); pinMode(soakPin,OUTPUT);  pinMode(reflowPin,OUTPUT); pinMode(coolingPin,OUTPUT); pinMode(RedLEDsPin, OUTPUT);
   // Define PID stuff
-  //  windowStartTime = millis(); // MIGHT WANT TO MOVE THIS INTO THE LOOP
-  //  myPID.SetOutputLimits(0, MaxOutput); /* The range ouf Output times (in ms). 0 corresponds to oven always being off
-  //                                          MaxOutput correlates to the PID being driven at maximum intensity. */
-    myPID.SetOutputLimits(0,1); // now the PID will Output either 0 (heater off) or 1 (heater 1)
+    myPID.SetOutputLimits(0,1);
     myPID.SetMode(AUTOMATIC);
 }
 
@@ -92,29 +89,31 @@ void loop()
 //            desiredTime2 = setDesiredTime(2);
 //            desiredTemp3 = setDesiredTemp(3);
 //            desiredTime3 = setDesiredTime(3);
+         // HEATER TESTING
             desiredTemp1 = 150;
             desiredTemp2 = 150;
             desiredTemp3 = 230;
             desiredTime1 = 200;
             desiredTime2 = 300;
             desiredTime3 = 400;
-//            desiredTemp1 = 10;
-//            desiredTemp2 = 10;
-//            desiredTemp3 = 20;
-//            desiredTime1 = 10;
-//            desiredTime2 = 15;
-//            desiredTime3 = 20;
+            // BREADBOARD TESTING
+                  //            desiredTemp1 = 10;
+                  //            desiredTemp2 = 10;
+                  //            desiredTemp3 = 20;
+                  //            desiredTime1 = 10;
+                  //            desiredTime2 = 15;
+                  //            desiredTime3 = 20;
 
             // Write the sequence to the Serial that tells MATLAB what the desired set points are
             Serial.print(desiredTemp1);Serial.print("A");Serial.print(desiredTime1);Serial.print("B");
             Serial.print(desiredTemp2);Serial.print("C");Serial.print(desiredTime2);Serial.print("D");
             Serial.print(desiredTemp3);Serial.print("E");Serial.print(desiredTime3);Serial.println("F");
+           
             desiredTempSet = true; // The user has set all their desired values.  We don't need to run these commands again.
             double val0 = analogRead(readTempPin); //reading from thermocouple pin at start of reflow
             double volt0 = (val0/1023)*5; //map that reading to a voltage 
             T0=volt0/(0.005); // Temperature at the start of the reflow 
             startTime = millis();  // The time elapsed between restarting the Arduino and starting the reflow
-            windowStartTime = millis(); // A PID variable.
           }
           
         // THIS GETS RUN DURING EVERY LOOP
@@ -123,25 +122,19 @@ void loop()
           determineReflowSection();  // Determine if we are in ramp, soak, reflow, or cooling
           if(!checkUserInterrupt() && !ReflowComplete ){
             
-//            if(runTime <  (desiredTemp1/2)){
-//              Output = 1;
-//              digitalWrite(heaterPin, HIGH);
-//              display_currentTemp();
-//            }else {
-////              if(phase == "Ramp" || phase == "Reflow"){
-////              // use aggresive coefficients;
-////                kp = 1;
-////                ki = 3;
-////                kd = .05;
-////              }
-////              if(phase == "Soak"){
-////                // use steady state coefficients
-////                kp = 1;
-////                ki = .05;
-////                kd = 4;
-////              }
+            if(  ((phase == "Ramp") && (runTime < desiredTime1/2)) || ((phase == "Reflow") && (runTime <  (desiredTime3 - (desiredTime3-desiredTime2)/2) )) ){
+             // Use aggresive coefficients for first half of Ramp and Reflow
+                kp = 8;
+                ki = 10;
+                kd = 5;
+            }else{
+                // use steady state coefficients
+                kp = 1;
+                ki = .05;
+                kd = 4;
+              }
               PIDHeaterControl(); //Monitor & control the temp
- //           }
+            }
           }
         }
         if(currentTemp<=28 && runTime > desiredTime3) ReflowComplete = true; 
@@ -164,4 +157,3 @@ void loop()
         Statistics();
       } 
   }
-}
