@@ -47,7 +47,7 @@ void determineReflowSection(){
     else if (runTime>desiredTime3){
       setTemp = 20; 
       digitalWrite(coolingPin,HIGH); // turns on LED for cooling phase 
-      desiredTemp = 20; // room temp. arbitrary
+      desiredTemp = 0; // room temp. arbitrary
       desiredTime = desiredTime3+90; // this is arbitrary
       Serial.println("COOLING PHASE");
       phase = "Cool";
