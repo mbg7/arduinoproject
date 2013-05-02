@@ -77,7 +77,7 @@ double userAdjust(double thingToAdjust, boolean tempOrTime, int pointN){
       Serial.println("btnSELECT is pressed");
       userFinished = true;
       Serial.print("thingToAdjust: ");Serial.println(thingToAdjust);
-      delay(40
+      delay(400);
       return thingToAdjust;
     }
     case btnNONE:
