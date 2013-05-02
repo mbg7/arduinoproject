@@ -1,8 +1,12 @@
-/* ***********************************************************************
-This file contains the user interaction functions.  These allow the user
-to set their desired temperature and desired time. If the user selects a 
-temp that is maxTemp or below minTemp, they will be warned and asked to reinput.
-************************************************************************ */
+/* ****************************************************************************************************************
+This file contains the user interaction functions.  These allow the user to set their desired temperature and desired time. 
+If the user selects a temp that is maxTemp or below minTemp, or a time that is negative, they will be warned and asked to reinput.
+ > read_LCD_buttons()
+ > userAdjust(double thingToAdjust, boolean 1forTemp,0forTime , int setpoint1,2,or3)
+ > setDesiredTemp(int setpoint1,2,or3)
+ > setDesiredTime(int setpoint1,2,or3)
+ > checkUserInterrupt(): if the user presseses select during heating, heating will shut off and Arduino will lock up
+***************************************************************************************************************** */
 
 boolean userFinished = false; // Is the user done setting the temp?
 
@@ -23,7 +27,9 @@ int adc_key_in = 0;
 #define VNONE (50+1023)
 
 
-// read the buttons
+/*******************************************************************************************
+This method reads the button voltages and determines which button is being pressed
+*******************************************************************************************/
 int read_LCD_buttons()
 {
   adc_key_in = analogRead(0); // read the value from the sensor
@@ -137,7 +143,6 @@ double setDesiredTime(int pointNumt) // pointNum is the desired point we are wor
     } 
     userFinished = false;
   }
-  
   return timeToSet;
 }
 
@@ -149,23 +154,5 @@ boolean checkUserInterrupt(){
   if(read_LCD_buttons() == btnSELECT){
     ReflowComplete = true;
     return true;
-    
-//      digitalWrite(heaterPin, LOW);
-//      lcd.clear(); lcd.print("REFLOW STOPPED.");
-//      lcd.setCursor(0,1);lcd.print("SLCT to continue...");
-//      delay(2000);
-//      /* Wait 5 seconds for the user to continue the heating.  If they don't continue within
-//         5 seconds, they will have to reset the Arduino if they want to restart the reflow. */
-//      for(int k=0;k>=13000;k++){ 
-//          delay(1);
-//          if(read_LCD_buttons() == btnSELECT){
-//              lcd.clear(); lcd.print("CONTINUE REFLOW"); delay(1000);
-//              return false;
-//          }
-//          else{
-//              ReflowComplete = true;
-//              return true;
-//          }
-//      }
   }else return false; 
 }
