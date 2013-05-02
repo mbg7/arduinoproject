@@ -15,11 +15,11 @@ void determineReflowSection(){
       lcd.setCursor(0,1);
       lcd.print("DISCONNECT POWER");
       digitalWrite(heaterPin,LOW); 
-      OverTimeAlarm = true; // turn on the over time alarm to lock up the controller
+      OverTimeAlarm = true; // turn on the OverTimeAlarm to lock up the controller
       
     }
     if (runTime < desiredTime1){
-      setTemp = (desiredTemp1-T0)/(desiredTime1-startTime)*(runTime-T0)+T0;
+      setTemp = ((desiredTemp1-T0)/(desiredTime1-startTime))*(runTime-startTime)+T0;
       digitalWrite(rampPin,HIGH); // turns on LED for ramp phase 
       desiredTemp = desiredTemp1;
       desiredTime = desiredTime1;
@@ -35,7 +35,7 @@ void determineReflowSection(){
       actualTemp2 = currentTemp;
     }
     else if (runTime>desiredTime2 & runTime<desiredTime3){
-      setTemp = (desiredTemp3-desiredTemp2)/(desiredTime3-desiredTime2)*(runTime-desiredTime2)+desiredTemp2;
+      setTemp = ((desiredTemp3-desiredTemp2)/(desiredTime3-desiredTime2))*(runTime-desiredTime2)+desiredTemp2;
       digitalWrite(reflowPin,HIGH); // turns on LED for reflow phase 
       desiredTemp = desiredTemp3;
       desiredTime = desiredTime3;
@@ -50,5 +50,3 @@ void determineReflowSection(){
       phase = "Cool";
     }
 }
-
-  
