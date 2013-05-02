@@ -23,7 +23,7 @@ int heaterPin = 2; //Digital output to pin D2, a PWM pin
     int reflowPin = 5;
     int coolingPin = 6;
     // Define the LEDs that warn the user against being burned
-    int redLEDsPin = 1; // is this pin allowed?
+    int RedLEDsPin = 1; // is this pin allowed?
 
 // Define Global Variables
 double T0 = 0; // The temp of the oven at the start of the reflow
@@ -49,9 +49,10 @@ boolean OverTimeAlarm = false; // Has the heater been on for too long?
 boolean ReflowComplete = false; // Is the reflow cycle done? Is it back to room temp?
 
 // Specify PID parameters and variables
-double kp = 7//(1.2)*(100/100); //(proportional gain - difference between the current temperature and the set point) (2, 0.1, 5)
-double ki = .6//(.6)*(100/100^2); //(integral gain - proportional to the magnitude and duration of error)
-double kd = .01//(.6)*(100); //(derivative gain - slope of the error over time)
+
+double kp = 1;//(1.2)*(90/40); //(proportional gain - difference between the current temperature and the set point) (2, 0.1, 5)
+double ki = 3;//(.6)*(90/40^2); //(integral gain - proportional to the magnitude and duration of error)
+double kd = .05;//(.6)*(90); //(derivative gain - slope of the error over time)
 double Output;
 int WindowSize = 500; //ms
 unsigned long windowStartTime;
@@ -68,7 +69,7 @@ void setup()
   // Define pin modes
     pinMode(readTempPin, INPUT); 
     pinMode(heaterPin, OUTPUT); 
-    pinMode(rampPin,OUTPUT); pinMode(soakPin,OUTPUT);  pinMode(reflowPin,OUTPUT); pinMode(coolingPin,OUTPUT); pinMode(redLEDsPin, OUTPUT);
+    pinMode(rampPin,OUTPUT); pinMode(soakPin,OUTPUT);  pinMode(reflowPin,OUTPUT); pinMode(coolingPin,OUTPUT); pinMode(RedLEDsPin, OUTPUT);
   // Define PID stuff
   //  windowStartTime = millis(); // MIGHT WANT TO MOVE THIS INTO THE LOOP
   //  myPID.SetOutputLimits(0, MaxOutput); /* The range ouf Output times (in ms). 0 corresponds to oven always being off
@@ -94,9 +95,9 @@ void loop()
             desiredTemp1 = 150;
             desiredTemp2 = 150;
             desiredTemp3 = 230;
-            desiredTime1 = 150;
-            desiredTime2 = 250;
-            desiredTime3 = 350;
+            desiredTime1 = 200;
+            desiredTime2 = 300;
+            desiredTime3 = 400;
 
             // Write the sequence to the Serial that tells MATLAB what the desired set points are
             Serial.print(desiredTemp1);Serial.print("A");Serial.print(desiredTime1);Serial.print("B");
@@ -116,12 +117,25 @@ void loop()
           determineReflowSection();  // Determine if we are in ramp, soak, reflow, or cooling
           if(!checkUserInterrupt()){
             
-           // OVERRIDE PID FOR TESTING
-           Output = 1;
-           display_currentTemp();
-           digitalWrite(heaterPin, HIGH); 
+            if(runTime < T1/2){
+              digitalWrite(heaterPin, HIGH);
+            }else {
+              if(phase == "Ramp" || phase == "Reflow"){
+              // use aggresive coefficients;
+                kp = 1;
+                ki = 3;
+                kd = .05;
+              }
+              if(phase == "Soak"){
+                // use steady state coefficients
+                kp = 1;
+                ki = .05;
+                kd = 4;
+              }
+              PIDHeaterControl(); //Monitor & control the temp
+            }
+          
             
-           // PIDHeaterControl(); //Monitor & control the temp
           }
         }
         if(currentTemp<=28 && runTime > desiredTime3) ReflowComplete = true; 
