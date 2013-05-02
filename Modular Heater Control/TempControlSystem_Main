@@ -83,24 +83,29 @@ void loop()
         // Now set the desired temps and times if you haven't already.  This should only be done once per reset.  
          while(!desiredTempSet){ 
             display_instructions();
-         //   lcd.clear();lcd.print("Set Temp 1"); delay(800);
-            desiredTemp1 = setDesiredTemp(1);
-         //   lcd.clear();lcd.print("Set Time 1"); delay(800);
-            desiredTime1 = setDesiredTime(1);
-       //     lcd.clear();lcd.print("Set Temp 2"); delay(800);
-            desiredTemp2 = setDesiredTemp(2);
-     //       lcd.clear();lcd.print("Set Time 2"); delay(800);
-            desiredTime2 = setDesiredTime(2);
-   //         lcd.clear();lcd.print("Set Temp 3"); delay(800);
-            desiredTemp3 = setDesiredTemp(3);
- // lcd.clear();lcd.print("Set Time 3"); delay(800);
-            desiredTime3 = setDesiredTime(3);
+//            desiredTemp1 = setDesiredTemp(1);
+//            desiredTime1 = setDesiredTime(1);
+//            desiredTemp2 = setDesiredTemp(2);
+//            desiredTime2 = setDesiredTime(2);
+//            desiredTemp3 = setDesiredTemp(3);
+//            desiredTime3 = setDesiredTime(3);
 //            desiredTemp1 = 150;
 //            desiredTemp2 = 150;
 //            desiredTemp3 = 230;
 //            desiredTime1 = 150;
 //            desiredTime2 = 250;
 //            desiredTime3 = 350;
+            desiredTemp1 = 50;
+            desiredTemp2 = 50;
+            desiredTemp3 = 150;
+            desiredTime1 = 10;
+            desiredTime2 = 50;
+            desiredTime3 = 100;
+            // Write the sequence to the Serial that tells MATLAB what the desired set points are
+            
+            Serial.print(desiredTemp1);Serial.print("A");Serial.print(desiredTime1);Serial.print("B");
+            Serial.print(desiredTemp2);Serial.print("C");Serial.print(desiredTime2);Serial.print("D");
+            Serial.print(desiredTemp3);Serial.print("E");Serial.print(desiredTime3);Serial.println("F");
             desiredTempSet = true; // The user has set all their desired values.  We don't need to run these commands again.
             double val0 = analogRead(readTempPin); //reading from thermocouple pin at start of reflow
             double volt0 = (val0/1023)*5; //map that reading to a voltage 
@@ -110,13 +115,13 @@ void loop()
           }
           
         // THIS GETS RUN DURING EVERY LOOP
-//        if(desiredTempSet && !checkUserInterrupt() ){
+        if(desiredTempSet && !checkUserInterrupt() ){
           runTime = (millis()-startTime)/1000; // Determine how long the PID has been running. In seconds.
           determineReflowSection();  // Determine if we are in ramp, soak, reflow, or cooling
-   //       if(!checkUserInterrupt()){
+          if(!checkUserInterrupt()){
             PIDHeaterControl(); //Monitor & control the temp
-  //        }
-  //      }
+          }
+        }
         if(currentTemp<=28 && runTime > desiredTime3) ReflowComplete = true; 
       }
       
@@ -125,6 +130,8 @@ void loop()
           digitalWrite(heaterPin, LOW);
           lcd.clear(); lcd.print("Reflow Complete!");
           lcd.setCursor(0,1);lcd.print("Temp: ");lcd.print(currentTemp);lcd.print((char)223);lcd.print("C");
+        // Write the termination sequence to the Serial
+           Serial.println("XXXXX"); 
         // Flash all of the LEDs for 5 seconds
        for(int k = 0; k>100;k++){
           digitalWrite(rampPin,HIGH); digitalWrite(soakPin,HIGH); digitalWrite(reflowPin,HIGH); digitalWrite(coolingPin,HIGH);
@@ -136,4 +143,3 @@ void loop()
       } 
   }
 }
-
