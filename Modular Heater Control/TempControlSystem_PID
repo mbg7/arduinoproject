@@ -17,7 +17,11 @@ void readTemp(){
   Serial.print("t \n");
   /*  write the currentTemp to the appropriate byte of the EEPROM. 
       These values will remain there when the board is turned off. */
-
+  
+  // If the temp is above 100C, warn the user against burns by turning on the red LEDs
+  if(currentTemp >=100){
+    digitalWrite(RedLEDsPin, HIGH);
+  }else digitalWrite(RedLEDsPin, LOW);
 }
 
 void PIDHeaterControl()
@@ -37,7 +41,7 @@ void PIDHeaterControl()
   if(!OverTempAlarm){
       display_currentTemp();
       myPID.Compute();  // Takes in the k coefficients, currentTemp, setTemp, and magically determines Output, 
-                        //     a measure of "how hard we want to drive the heater."
+                        //     a measure of "how hard we want to drive the heater."     
      // TURN OUTPUT PIN ON/OFF BASED ON PID OUTPUT
       if(Output > 0){
          digitalWrite(heaterPin, HIGH);  // Turn the heater on if PID gives large OUTPUT 
