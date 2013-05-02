@@ -72,9 +72,10 @@ void setup()
     pinMode(reflowPin,OUTPUT);
     pinMode(coolingPin,OUTPUT);
   // Define PID stuff
-    windowStartTime = millis();
-    myPID.SetOutputLimits(0, MaxOutput); /* The range ouf Output times (in ms). 0 corresponds to oven always being off;
+  //  windowStartTime = millis(); // MIGHT WANT TO MOVE THIS INTO THE LOOP
+  //  myPID.SetOutputLimits(0, MaxOutput); /* The range ouf Output times (in ms). 0 corresponds to oven always being off;
                                             MaxOutput correlates to the PID being driven at maximum intensity.*/
+    myPID.SetOutputLimits(0,1); // now the PID will Output either 0 (heater off) or 1 (heater 1)
     myPID.SetMode(AUTOMATIC);
 }
 
@@ -111,23 +112,29 @@ void loop()
             double volt0 = (val0/1023)*5; //map that reading to a voltage 
             T0=volt0/(0.005); // Temperature at the start of the reflow 
             startTime = millis();  // The time elapsed between restarting the Arduino and starting the reflow
+            windowStartTime = millis(); // A PID variable.
             Serial.print("Start Time: "); Serial.println(startTime);
           }
-        
-        runTime = (millis()-startTime)/1000; // Determine how long the PID has been running. In seconds.
-        Serial.print("Run Time: "); Serial.println(runTime);
-        determineReflowSection();  // Determine if we are in ramp, soak, reflow, or cooling
-        PIDHeaterControl(); //Monitor & control the temp
-        
-        if(currentTemp<=20) ReflowComplete = true; 
+          
+        // THIS GETS RUN DURING EVERY LOOP
+        if(!checkUserInterrupt() ){
+          runTime = (millis()-startTime)/1000; // Determine how long the PID has been running. In seconds.
+          Serial.print("Run Time: "); Serial.println(runTime);
+          determineReflowSection();  // Determine if we are in ramp, soak, reflow, or cooling
+          if(!checkUserInterrupt()){
+            PIDHeaterControl(); //Monitor & control the temp
+          }
+        }
+        if(currentTemp<=20 && runTime > desiredTime3) ReflowComplete = true; 
       }
       
       if(ReflowComplete){
-        // Now the reflow is complete
+        // Now the reflow is complete (or the user interrupted and stopped it)
+          else digitalWrite(heaterPin, LOW);
           lcd.clear(); lcd.print("Reflow Complete!");
           lcd.setCursor(0,1);lcd.print("Temp: ");lcd.print(currentTemp);lcd.print((char)223);lcd.print("C");
-        // Flash all of the LEDs
-        for(int k = 0; k>100;k++){
+        // Flash all of the LEDs for 5 seconds
+       for(int k = 0; k>100;k++){
           digitalWrite(rampPin,HIGH);
           digitalWrite(soakPin,HIGH);
           digitalWrite(reflowPin,HIGH); 
