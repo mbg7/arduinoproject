@@ -61,7 +61,18 @@ void display_currentTemp()
     lcd.print((int)desiredTemp); 
     lcd.print((char)223);
     lcd.print("C");
+    
+        if(Output>0){
+             // Debugging --> show Output
+             lcd.setCursor(14,1); lcd.print("^");
+        }
+        if(Output<=0){
+          // Debugging --> show Output
+             lcd.setCursor(14,1); lcd.print("-");
+        }
+          
+
+    
     delay(1000);
   }
 }
- 
