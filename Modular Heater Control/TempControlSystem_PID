@@ -3,13 +3,18 @@ This file contains the PID Control function.  PID coefficients were
 provided initially by Dr. Palmeri.  They may be improved in the future
 using the AutoTune library.
 ************************************************************************ */
-
-void PIDHeaterControl()
-{
+void readTemp(){
   double currentVal = analogRead(readTempPin);  // Reading from the thermocouple pin (vals are on a range from 0 to 1023)
   double currentVolt = (currentVal/1023)*5;    // Map that reading to a voltage (map 0 to 0V and 1023 to 5V)
   currentTemp = currentVolt/(.005);           // Map that voltage to a temperature (5 mV / Degree C)
   Serial.println(currentTemp);
+  runTime = (millis()-startTime)*1000; // Determine how long the oven has been running. In seconds.
+}
+
+
+void PIDHeaterControl()
+{
+  readTemp();
  
  // CHECK OVERTEMP CONDITION
   if(currentTemp>=maxTemp){   // If we have exeeded the max temp limit, alert user and turn off oven.
