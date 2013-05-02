@@ -24,7 +24,7 @@ void determineReflowSection(){
       desiredTemp = desiredTemp1;
       desiredTime = desiredTime1;
       phase = "Ramp";
-      Serial.println("RAMP PHASE");
+      actualTemp1 = currentTemp;
     }
     else if (runTime>desiredTime1 & runTime<desiredTime2){
       setTemp = desiredTemp2; 
@@ -32,7 +32,7 @@ void determineReflowSection(){
       desiredTemp = desiredTemp2;
       desiredTime = desiredTime2;
       phase = "Soak";
-      Serial.println("SOAK PHASE");
+      actualTemp2 = currentTemp;
     }
     else if (runTime>desiredTime2 & runTime<desiredTime3){
       setTemp = (desiredTemp3-desiredTemp2)/(desiredTime3-desiredTime2)*(runTime-desiredTime2)+desiredTemp2;
@@ -40,16 +40,16 @@ void determineReflowSection(){
       desiredTemp = desiredTemp3;
       desiredTime = desiredTime3;
       phase = "Reflow";
-      Serial.println("REFLOW PHASE");
+      actualTemp3 = currentTemp;
     }
     else if (runTime>desiredTime3){
       setTemp = 20; 
       digitalWrite(coolingPin,HIGH); // turns on LED for cooling phase 
       desiredTemp = 0; // room temp. arbitrary
       desiredTime = desiredTime3+90; // this is arbitrary
-      Serial.println("COOLING PHASE");
       phase = "Cool";
     }
 }
+
 
   
