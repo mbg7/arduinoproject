@@ -8,7 +8,9 @@ This file contains the lcd display functions.
 void display_instructions()
 {
   lcd.clear();
-  lcd.print("Set Temps&Times.");
+  lcd.print("Set Desired");
+  lcd.setCursor(0,1);
+  lcd.print("Temps & Times.");
   delay(2500);
   lcd.clear();
   lcd.print("Up/Down by 1"); lcd.print((char)223);lcd.print("C");
@@ -42,19 +44,21 @@ void display_currentTemp()
   lcd.clear();  // Clear the LCD
   
   // Display current temperature.
-  lcd.print("Current:");   
+  lcd.print("T:");   
   lcd.print(currentTemp);
-  lcd.print( (char)223);
+  lcd.print((char)223);
   lcd.print("C");
   
+  // Display the reflow phase.
+  lcd.setCursor(11,0);
+  lcd.print(phase);
+  
   // Display the set point temperature which the controller is trying to reach.
- if (desiredTime<=runTime) {
   lcd.setCursor(0,1); 
-  lcd.print(desiredTime-runTime); 
-  lcd.print("s until ");
-  lcd.print(desiredTemp);  
-  lcd.print( (char)223);
+  lcd.print((int)desiredTime-(int)runTime); 
+  lcd.print("s to ");
+  lcd.print((int)desiredTemp); 
+  lcd.print((char)223);
   lcd.print("C");
   delay(1000);
-  }
 }
