@@ -143,8 +143,7 @@ double setDesiredTime(int pointNumt) // pointNum is the desired point we are wor
 
 /*******************************************************************************************
 This method checks if the user presses select at any time during heating.  If the user presses
-select, stop heating.  Wait 15 seconds for the user to continue heating.  If they don't press 
-select again within 15 seconds, return true.  This will stop heating and require a hard reset.
+select, stop heating and require a hard reset.
 *******************************************************************************************/
 boolean checkUserInterrupt(){
   if(read_LCD_buttons() == btnSELECT){
