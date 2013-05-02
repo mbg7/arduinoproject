@@ -7,7 +7,14 @@ void readTemp(){
   double currentVal = analogRead(readTempPin);  // Reading from the thermocouple pin (vals are on a range from 0 to 1023)
   double currentVolt = (currentVal/1023)*5;    // Map that reading to a voltage (map 0 to 0V and 1023 to 5V)
   currentTemp = currentVolt/(.005);           // Map that voltage to a temperature (5 mV / Degree C)
-  Serial.println(currentTemp);
+  if(currentTemp>actualMaxTemp){
+    actualMaxTemp = currentTemp;
+  }
+  runTime = (millis()-startTime)/1000; // Determine how long the PID has been running. In seconds.
+  Serial.print(currentTemp, DEC);
+  Serial.print("T   ");
+  Serial.print(runTime, DEC);
+  Serial.print("t");
   /*  write the currentTemp to the appropriate byte of the EEPROM. 
       These values will remain there when the board is turned off. */
 
@@ -16,27 +23,25 @@ void readTemp(){
 void PIDHeaterControl()
 {
  // CHECK OVERTEMP CONDITION
-  if(currentTemp>=maxTemp){   // If we have exeeded the max temp limit, alert user and turn off oven.
-      lcd.clear();
-      lcd.print("WARNING: TOO HOT!");
-      lcd.setCursor(0,1);
-      lcd.print("DISCONNECT PWR"); 
-      Serial.print("OVERHEAT TEMP: "); 
-      Serial.println(currentTemp);
-      digitalWrite(heaterPin, LOW); // Turn off the heater
-      OverTempAlarm = true;  // Enter the OverTempAlarm state --> this locks up the controller until the user resets
-   }
+//  if(currentTemp>=maxTemp){   // If we have exeeded the max temp limit, alert user and turn off oven.
+//      lcd.clear();
+//      lcd.print("WARNING: TOO HOT!");
+//      lcd.setCursor(0,1);
+//      lcd.print("DISCONNECT PWR"); 
+//      Serial.print("OVERHEAT TEMP: "); 
+//      Serial.println(currentTemp);
+//      digitalWrite(heaterPin, LOW); // Turn off the heater
+//      OverTempAlarm = true;  // Enter the OverTempAlarm state --> this locks up the controller until the user resets
+//   }
   
   if(!OverTempAlarm){
       display_currentTemp();
       myPID.Compute();  // Takes in the k coefficients, currentTemp, setTemp, and magically determines Output, 
                         //     a measure of "how hard we want to drive the heater."
-      Serial.print("OUTPUT: "); Serial.println(OUTPUT);
-     
+     Serial.print("       Output: ");Serial.println(Output);
      // TURN OUTPUT PIN ON/OFF BASED ON PID OUTPUT
       if(Output > 0){
          digitalWrite(heaterPin, HIGH);  // Turn the heater on if PID gives large OUTPUT 
-         Serial.println("Heater On");
       }else digitalWrite(heaterPin, LOW); // Turn the heater off if PID gives small OUTPUT 
   }
 }
