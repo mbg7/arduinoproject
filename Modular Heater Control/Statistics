@@ -1,3 +1,8 @@
+/*******************************************************************************************
+This method calculates error statitistics and reports them at the end of the run.  It reports
+error between each of the desired temps and the actual temp at that desired time, as well as 
+the error of the overall peak temp and the desired peak reflow temp.
+*******************************************************************************************/
 void Statistics(){
   int temp1Error = abs((desiredTemp1 - actualTemp1)/(desiredTemp1))*100;
   int temp2Error = abs((desiredTemp2 - actualTemp2)/(desiredTemp2))*100;
