@@ -9,13 +9,22 @@ void readTemp(){
   currentTemp = currentVolt/(.005);           // Map that voltage to a temperature (5 mV / Degree C)
   Serial.println(currentTemp);
   runTime = (millis()-startTime)*1000; // Determine how long the oven has been running. In seconds.
+  /*  write the currentTemp to the appropriate byte of the EEPROM. 
+      These values will remain there when the board is turned off. */
+  EEPROM.write(addr, currentTemp); 
+  /*  read the currentTemp from the EEprom
+  
+  
+  /*  Advance to the next address.  There are 512 bytes in 
+      the EEPROM, so go back to 0 when we hit 512. */
+  addr = addr + 1;
+  if (addr == 512) addr = 0;
+  
 }
 
 
 void PIDHeaterControl()
 {
-  readTemp();
- 
  // CHECK OVERTEMP CONDITION
   if(currentTemp>=maxTemp){   // If we have exeeded the max temp limit, alert user and turn off oven.
       lcd.clear();
