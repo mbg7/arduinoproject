@@ -136,6 +136,14 @@ double setDesiredTime()
    timeToSet= userAdjust(timeToSet, false); // the "false" input tells userAdjust that this is a TIME.
   }
   userFinished = false;
+  while(timeToSet < 0){
+    lcd.clear();lcd.print("No time < 0.");
+    lcd.setCursor(0,1);lcd.print("Reset time.");
+    while(userFinished == false){
+        userAdjust(timeToSet, false); // the "false" input tells userAdjust that this is a TIME.
+    } 
+    userFinished = false;
+  }
   lcd.clear();
   lcd.print("Time Set.");
   lcd.setCursor(0,1);
