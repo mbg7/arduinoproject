@@ -8,9 +8,7 @@ curve points that the user set at the beginning.
 If the PID has been heating for too long, this method alerts the user to cut off power and locks up the PID control.
 ******************************************************************************************/
 
-void determineReflowSection(){
-       Serial.print("Run Time: ");
-       Serial.println(runTime);  
+void determineReflowSection(){ 
   if (runTime > 30*60){ // if it's been running for longer than is safe
       lcd.clear();
       lcd.print("WARNING:OVER TIME");
@@ -53,3 +51,5 @@ void determineReflowSection(){
       phase = "Cool";
     }
 }
+
+  
