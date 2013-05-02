@@ -1,0 +1,20 @@
+void Statistics(){
+  int temp1Error = abs((desiredTemp1 - actualTemp1)/(desiredTemp1))*100;
+  int temp2Error = abs((desiredTemp2 - actualTemp2)/(desiredTemp2))*100;
+  int temp3Error = abs((desiredTemp3 - actualTemp3)/(desiredTemp3))*100;
+  int maxTempError = abs((desiredTemp3 - actualMaxTemp)/(desiredTemp3))*100;
+  
+  lcd.clear();
+  lcd.print("***STATISTICS***");
+  lcd.setCursor(0,1);
+  lcd.print("Set Point Errors");
+  delay(2000); lcd.clear();
+  lcd.print("T1:");lcd.print(temp1Error);lcd.print("%");
+  lcd.setCursor(9,0);
+  lcd.print("T2:");lcd.print(temp2Error);lcd.print("%");
+  lcd.setCursor(0,1);
+  lcd.print("T3:");lcd.print(temp2Error);lcd.print("%");
+  lcd.setCursor(9,1);
+  lcd.print("Pk:");lcd.print(maxTempError);lcd.print("%");
+  delay(6000);
+}
