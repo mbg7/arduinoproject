@@ -50,9 +50,9 @@ boolean ReflowComplete = false; // Is the reflow cycle done? Is it back to room 
 
 // Specify PID parameters and variables
 
-double kp = 1;//(1.2)*(90/40); //(proportional gain - difference between the current temperature and the set point) (2, 0.1, 5)
-double ki = 3;//(.6)*(90/40^2); //(integral gain - proportional to the magnitude and duration of error)
-double kd = .05;//(.6)*(90); //(derivative gain - slope of the error over time)
+double kp = 2;//(1.2)*(90/40); //(proportional gain - difference between the current temperature and the set point) (2, 0.1, 5)
+double ki = .1;//(.6)*(90/40^2); //(integral gain - proportional to the magnitude and duration of error)
+double kd = 5;//(.6)*(90); //(derivative gain - slope of the error over time)
 double Output;
 int WindowSize = 500; //ms
 unsigned long windowStartTime;
@@ -81,8 +81,8 @@ void setup()
 void loop()
 {
   readTemp();
-  if(!OverTempAlarm && !OverTimeAlarm){ // As long as we are not overheated and as long as we have not been on for too long.......
-      if(!ReflowComplete){ // As long as we aren't done and cooled back to room temp already...
+  if(!OverTempAlarm && !OverTimeAlarm && !checkUserInterrupt()){ // As long as we are not overheated and as long as we have not been on for too long.......
+      if(!checkUserInterrupt() && !ReflowComplete){ // As long as we aren't done and cooled back to room temp already...
         // Now set the desired temps and times if you haven't already.  This should only be done once per reset.  
          while(!desiredTempSet){ 
             display_instructions();
@@ -98,6 +98,12 @@ void loop()
             desiredTime1 = 200;
             desiredTime2 = 300;
             desiredTime3 = 400;
+//            desiredTemp1 = 10;
+//            desiredTemp2 = 10;
+//            desiredTemp3 = 20;
+//            desiredTime1 = 10;
+//            desiredTime2 = 15;
+//            desiredTime3 = 20;
 
             // Write the sequence to the Serial that tells MATLAB what the desired set points are
             Serial.print(desiredTemp1);Serial.print("A");Serial.print(desiredTime1);Serial.print("B");
@@ -112,30 +118,30 @@ void loop()
           }
           
         // THIS GETS RUN DURING EVERY LOOP
-        if(desiredTempSet && !checkUserInterrupt() ){
+        if(desiredTempSet && !checkUserInterrupt() && !ReflowComplete){
           runTime = (millis()-startTime)/1000; // Determine how long the PID has been running. In seconds.
           determineReflowSection();  // Determine if we are in ramp, soak, reflow, or cooling
-          if(!checkUserInterrupt()){
+          if(!checkUserInterrupt() && !ReflowComplete ){
             
-            if(runTime < T1/2){
-              digitalWrite(heaterPin, HIGH);
-            }else {
-              if(phase == "Ramp" || phase == "Reflow"){
-              // use aggresive coefficients;
-                kp = 1;
-                ki = 3;
-                kd = .05;
-              }
-              if(phase == "Soak"){
-                // use steady state coefficients
-                kp = 1;
-                ki = .05;
-                kd = 4;
-              }
+//            if(runTime <  (desiredTemp1/2)){
+//              Output = 1;
+//              digitalWrite(heaterPin, HIGH);
+//              display_currentTemp();
+//            }else {
+////              if(phase == "Ramp" || phase == "Reflow"){
+////              // use aggresive coefficients;
+////                kp = 1;
+////                ki = 3;
+////                kd = .05;
+////              }
+////              if(phase == "Soak"){
+////                // use steady state coefficients
+////                kp = 1;
+////                ki = .05;
+////                kd = 4;
+////              }
               PIDHeaterControl(); //Monitor & control the temp
-            }
-          
-            
+ //           }
           }
         }
         if(currentTemp<=28 && runTime > desiredTime3) ReflowComplete = true; 
@@ -149,11 +155,11 @@ void loop()
         // Write the termination sequence to the Serial
            Serial.println("XXXXX"); 
         // Flash all of the LEDs for 5 seconds
-       for(int k = 0; k>100;k++){
-          digitalWrite(rampPin,HIGH); digitalWrite(soakPin,HIGH); digitalWrite(reflowPin,HIGH); digitalWrite(coolingPin,HIGH);
-          delay(50);
-          digitalWrite(rampPin,LOW);  digitalWrite(soakPin,LOW);  digitalWrite(reflowPin,LOW);  digitalWrite(coolingPin,LOW);
-        } 
+         for(int k = 0; k>100;k++){
+            digitalWrite(rampPin,HIGH); digitalWrite(soakPin,HIGH); digitalWrite(reflowPin,HIGH); digitalWrite(coolingPin,HIGH);
+            delay(50);
+            digitalWrite(rampPin,LOW);  digitalWrite(soakPin,LOW);  digitalWrite(reflowPin,LOW);  digitalWrite(coolingPin,LOW);
+          } 
         delay(1000);
         Statistics();
       } 
