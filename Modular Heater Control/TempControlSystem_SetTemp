@@ -153,3 +153,30 @@ double setDesiredTime()
   
   return timeToSet;
 }
+
+/*******************************************************************************************
+This method checks if the user presses select at any time during heating.  If the user presses
+select, stop heating.  Wait 5 seconds for the user to continue heating.  If they don't press 
+select again within 5 seconds, return true.  This will stop heating and require a hard reset.
+*******************************************************************************************/
+boolean checkUserInterrupt(){
+  if(read_LCD_buttons() == btnSELECT){
+      digitalWrite(heaterPin, LOW);
+      lcd.clear(); lcd.print("REFLOW STOPPED.");
+      lcd.setCursor(0,1);lcd.print("SLCT to continue...");
+      delay(800);
+      /* Wait 5 seconds for the user to continue the heating.  If they don't continue within
+         5 seconds, they will have to reset the Arduino if they want to restart the reflow. */
+      for(k=0;k=100;k++){ 
+          delay(50);
+          if(read_LCD_buttons() == btnSELECT){
+              lcd.clear(); lcd.print("CONTINUE REFLOW"); delay(800);
+              return false;
+          }
+          else{
+              ReflowComplete = true;
+              return true;
+          }
+      }
+  }
+}
