@@ -1,5 +1,5 @@
 /*******************************************************************************************
-This method calculates error statitistics and reports them at the end of the run.  It reports
+This method calculates error statistics and reports them at the end of the run.  It reports
 error between each of the desired temps and the actual temp at that desired time, as well as 
 the error of the overall peak temp and the desired peak reflow temp.
 *******************************************************************************************/
