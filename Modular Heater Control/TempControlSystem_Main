@@ -83,20 +83,23 @@ void loop()
                   // Now set the desired temps and times if you haven't already.  This should only be done once per reset.  
                    while(!desiredTempSet){ 
                       display_instructions();
+//MATLAB                     // NOTE! Comment out this section for use with MATLAB
                       desiredTemp1 = setDesiredTemp(1); lcd.setCursor(11,1);lcd.print("Set."); delay(500);
                       desiredTime1 = setDesiredTime(1); lcd.setCursor(11,1);lcd.print("Set."); delay(500);
                       desiredTemp2 = setDesiredTemp(2); lcd.setCursor(11,1);lcd.print("Set."); delay(500);
                       desiredTime2 = setDesiredTime(2); lcd.setCursor(11,1);lcd.print("Set."); delay(500);
                       desiredTemp3 = setDesiredTemp(3); lcd.setCursor(11,1);lcd.print("Set."); delay(500);
                       desiredTime3 = setDesiredTime(3); lcd.setCursor(11,1);lcd.print("Set."); delay(500);
-                       // HEATER TESTING. You must use hardcoded points, and not the above code, if you wish to run the real time MATLAB plotting
+                       // HEATER TESTING. 
+//MATLAB                     // NOTE! Uncomment this for use with MATLAB. 
+                             // You must use hardcoded points, and not the above code, if you wish to run the real time MATLAB plotting.
 //                                          desiredTemp1 = 150;
 //                                          desiredTemp2 = 150;
 //                                          desiredTemp3 = 230;
 //                                          desiredTime1 = 150;
 //                                          desiredTime2 = 200;
 //                                          desiredTime3 = 300;
-                      // BREADBOARD TESTING
+                      // BREADBOARD TESTING. For quickly testing the display without actually trying to heat anything.
 //                                          desiredTemp1 = 10;
 //                                          desiredTemp2 = 10;
 //                                          desiredTemp3 = 20;
@@ -161,5 +164,6 @@ void loop()
         Statistics();
       } 
   }
+
 
 
