@@ -1,56 +1,72 @@
-%%real time data plot from a serial port 
-% This matlab script is for ploting a graph by accessing serial port data in
-% real time. 
+%% Real time data plot from a serial port 
+% This matlab script is for plotting a graph of oven temp vs time 
+% by accessing serial port data in "real time". 
+
+% It does have a significant lag, so this should NOT be used to 
+% determine reflow phase. This lag also means that the user needs to
+% wait for the MATLAB code to finish after the Arduino finishes. 
+% To stop the code early, simply ctrl-c to kill.
+
+% IMPORTANT NOTE: This is made for testing of the Arduino.  Therefore, you
+% must use the commented code in the Aruino sketch to hardcode in 
+% your temperature profile.  You cannot use the Arduino user interface
+% to set the profile whie this code is running. Also note that starting
+% the MATLAB resets the Arduino because it opens the Serial port.
+
 % Original Author: Moidu thavot.(downloaded)
 % Edited by Inka Johnson
 
-%%Clear all variables
+
+%% Set up 
 clear all;clc
+% Close any open Serial ports
 if(size(instrfind)>0)
     fclose(instrfind)
 end
-%%Variables (Edit yourself)
-SerialPort='/dev/tty.usbmodem641'; %serial port
-foundTermination = 0;
-%%Set up the serial port object
-s = serial(SerialPort)
-set(s,'BaudRate',9600);
-% set(s,'BufferSize',1024);
-%s.BufferSize = 1024;
-fopen(s)
 
+foundTermination = 0; % A binary indicator to indicate when
+                      %      the end of file is reached.
 
-while s.BytesAvailable<(0)
-    Close_and_reopen=1;
-    fclose(s);
-    delete(s);
-    clear s;
-    fclose(instrfind);
-    SerialPort='/dev/tty.usbmodem641'; %serial port
-    foundTermination = 0;
-    s = serial(SerialPort);
-    set(s,'BaudRate',9600);
-    % set(s,'BufferSize',1024);
-    %s.BufferSize = 1024;
-    fopen(s);
+SerialPort='/dev/tty.usbmodem641'; % name the serial port
+s = serial(SerialPort)% Set up serial port object.
+set(s,'BaudRate',9600);% Matches the Serial.begin(9600) command in Arduino.
+fopen(s)              % Open the Serial file
+
+%% If the file is empty...
+%   open and close it until there is something to read
+while s.BytesAvailable<(0) 
+    % Close & clean up
+        fclose(s);
+        delete(s);
+        clear s;
+    % redo the setup
+        fclose(instrfind);
+        SerialPort='/dev/tty.usbmodem641'; 
+        foundTermination = 0;
+        s = serial(SerialPort);
+        set(s,'BaudRate',9600);
+         fopen(s);
 end
 
-% Read temp and time data
-lineReading0 = fgetl(s)
-tempIndex = strfind(lineReading0, 'T');
-timeIndex = strfind(lineReading0, 't');
-T0Index = strfind(lineReading0, 'S');
-tempStr = lineReading0(1:tempIndex - 1);
-temp(1) = str2double(tempStr);
-timeStr = lineReading0(tempIndex+1:timeIndex - 1);
-time(1) = str2double(timeStr);
+%% Read Initial Data
+% Data is encoded by Serial.print() and Serial.println() in Arduino to
+% include character markers at the end of every number. We parse the data
+% for these markers, and then extract the corresponding numerical values.
+
+% Read initial temp and time data. 
+%   We need this to set initial conditions for the while loop below. 
+lineReading0 = fgetl(s)                 % Read one line
+tempIndex = strfind(lineReading0, 'T'); % Temps are marked with a "T"
+timeIndex = strfind(lineReading0, 't'); % Times are marked with a "t"
+T0Index = strfind(lineReading0, 'S');   % Temp when the PID started
+t0Index = strfind(lineReading0, 's');   % Time when the PID started
+temp(1) = str2double(lineReading0(1:tempIndex - 1));
+time(1) = str2double(lineReading0(tempIndex+1:timeIndex - 1));
 T0 = str2double(lineReading0(timeIndex+1:T0Index - 1));
-t0Index = strfind(lineReading0, 's');
 t0 = str2double(lineReading0(T0Index+1:t0Index - 1));
 
-
-
-% Read desired points info
+% Read desired points (reflow curve thresholds) info.  
+%   This is printed only one time, on the second line of the file.
 lineReading1 = fgetl(s)
 T1index = strfind(lineReading1,'A');
 t1index = strfind(lineReading1,'B');
@@ -66,36 +82,37 @@ t2 = str2double(lineReading1(T2index+1:t2index - 1));
 T3 = str2double(lineReading1(t2index+1:T3index-1));
 t3 = str2double(lineReading1(T3index+1:t3index - 1));
 
-% Plot the reflow curve
+%% Setup the reflow curve plot
 figure(1);clf; hold on
-title('Real Time Temperature Readings','FontSize',14)
+title('"Real Time" Temperature Readings','FontSize',14)
 xlabel('Time (s)','FontSize',14);
 ylabel('Temperature (C)','FontSize',14);
 plot([t0 t1 t2 t3],[T0 T1 T2 T3],'r',t0,T0,'yo',t1,T1,'bo',t2,T2,'go',t3,T3,'mo'); hold on;
-axis([0 t3+10 0 T3+50]); hold on;
+axis([0 t3+60 0 T3+50]); hold on;
+
+%% Continuously parse & plot the data
 
 count = 2;
 while foundTermination==0
-    %%Serial data accessing 
-     lineReading = fgetl(s)
+    lineReading = fgetl(s); % Read one line
+    % Check for end of file marker, 'XXXXX'
      terminationIndex = strfind(lineReading,'XXXXX');
      if size(terminationIndex) > 0
+         lineReading
          foundTermination = 1;
          break;
      end
+     % Parse the line
      tempIndex = strfind(lineReading, 'T');
      timeIndex = strfind(lineReading, 't');
-     tempStr = lineReading(1:tempIndex - 1);
-     temp(count) = str2double(tempStr);
-     timeStr = lineReading(tempIndex+1:timeIndex - 1);
-     time(count) = str2double(timeStr);
+     temp(count) = str2double(lineReading(1:tempIndex - 1));
+     time(count) = str2double(lineReading(tempIndex+1:timeIndex - 1));
+     % Plot the data
      figure(1);
      plot(time, temp,'b.'); hold on;
-     if max(time) > t3 
-         figure(1);
-         axis([0 max(temp) 0 t3]); hold on;
-     end
+     % Pause until the next line becomes available
      pause(time(count)-time(count-1));
+     
      count = count+1;
 end
 
