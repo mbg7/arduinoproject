@@ -1,6 +1,5 @@
-/******************************************************************************************
-method: determineReflosSection()
 
+/******************************************************************************************
 This code determines what phase of the reflow curve we are in (ramp, soak, cool, etc) and 
 lights LEDs to show the user. It updates the setTemp, desiredTemp and desiredTime variables to
 reflect where we are on the reflow curve. setTemp is the instantaneous set temp for the PID, 
@@ -48,7 +47,7 @@ void determineReflowSection(){
       setTemp = 20; 
       digitalWrite(coolingPin,HIGH); // turns on LED for cooling phase 
       desiredTemp = 0; // room temp. arbitrary
-      desiredTime = desiredTime3+90; // this is arbitrary
+      desiredTime = desiredTime3; // we don't actually care what this time is
       phase = "Cool";
     }
 }
