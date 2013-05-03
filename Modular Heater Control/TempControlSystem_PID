@@ -38,17 +38,17 @@ void readTemp(){
 
 void PIDHeaterControl(){
       readTemp();
-     // CHECK OVERTEMP CONDITION (comment out for breadboard)
-//      if(currentTemp>=maxTemp){   // If we have exeeded the max temp limit, alert user and turn off oven.
-//          lcd.clear();
-//          lcd.print("WARNING: TOO HOT!");
-//          lcd.setCursor(0,1);
-//          lcd.print("DISCONNECT PWR"); 
-//          Serial.print("OVERHEAT TEMP: "); 
-//          Serial.println(currentTemp);
-//          digitalWrite(heaterPin, LOW); // Turn off the heater
-//          OverTempAlarm = true;  // Enter the OverTempAlarm state --> this locks up the controller until the user resets
-//       }
+     // CHECK OVERTEMP CONDITION (comment out for breadbord testing)
+      if(currentTemp>=maxTemp){   // If we have exeeded the max temp limit, alert user and turn off oven.
+          lcd.clear();
+          lcd.print("WARNING: TOO HOT!");
+          lcd.setCursor(0,1);
+          lcd.print("DISCONNECT PWR"); 
+          Serial.print("OVERHEAT TEMP: "); 
+          Serial.println(currentTemp);
+          digitalWrite(heaterPin, LOW); // Turn off the heater
+          OverTempAlarm = true;  // Enter the OverTempAlarm state --> this locks up the controller until the user resets
+       }
       
       if(!OverTempAlarm){
           display_currentTemp();
