@@ -1,7 +1,7 @@
 /* *****************************************************************************************************
 This file contains the lcd display functions. 
  > display_instructions() : Instructions on how to set the desired temperature and times.
- > display_thingUserSelectedp() : Displays the desired temp or time, for use as the user is setting the value.
+ > display_thingUserSelected() : Displays the desired temp or time, for use as the user is setting the value.
  > display_currentTemp() : Current temp and phase on first line and the time to desired temp on 2nd line.
              Displays a ^ if the heater is on and a - if the heater is off.  During the Cool phase, 
              it uses the 2nd line to instruct the user to open the oven door.
