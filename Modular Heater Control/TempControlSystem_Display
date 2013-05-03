@@ -26,7 +26,8 @@ void display_instructions()
   delay(1000);
 }
 
-void display_thingUserSelected(double thingToDisplay, boolean timeOrTemp, int pointNum) // timeOrTemp is true when we are displaying a temp and false when we are displaying a time
+void display_thingUserSelected(double thingToDisplay, boolean timeOrTemp, int pointNum) /* timeOrTemp is
+                             true when we are displaying a temp and false when we are displaying a time*/
 {
   lcd.clear();
   if(timeOrTemp){ // We are displaying a temp
