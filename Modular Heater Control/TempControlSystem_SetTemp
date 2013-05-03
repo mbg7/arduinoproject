@@ -1,12 +1,10 @@
 /* ****************************************************************************************************************
 This file contains the user interaction functions.  These allow the user to set their desired temperature and desired time. 
 If the user selects a temp that is maxTemp or below minTemp, or a time that is negative, they will be warned and asked to reinput.
- > read_LCD_buttons()                     <---This method reads the button voltages and determines which button is being pressed.
- > userAdjust(double thingToAdjust, boolean 1forTemp,0forTime , int setpoint1,2,or3)    
-                                          <---This method inputs, adjusts, and then outputs thingToAdjust, which can be a time or a temp.
-                                              Also inputs a boolean called tempOrTime, which is true if we are using a temp and false if using a time.
- > setDesiredTemp(int setpoint1,2,or3)    <--- This method makes a varilabe timpToSet, asks the user to adjust it, and then outputs that tempToSet.
- > setDesiredTime(int setpoint1,2,or3)    <--- This method makes a variable timeToSet, asks the user to adjust it, and then outputs that timeToSet.
+ > read_LCD_buttons()
+ > userAdjust(double thingToAdjust, boolean 1forTemp,0forTime , int setpoint1,2,or3)
+ > setDesiredTemp(int setpoint1,2,or3)
+ > setDesiredTime(int setpoint1,2,or3)
  > checkUserInterrupt(): if the user presseses select during heating, heating will shut off and Arduino will lock up
 ***************************************************************************************************************** */
 
