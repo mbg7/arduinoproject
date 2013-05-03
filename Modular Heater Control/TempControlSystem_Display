@@ -1,7 +1,7 @@
 /* *****************************************************************************************************
 This file contains the lcd display functions. 
  > display_instructions() : Instructions on how to set the desired temperature and times.
- > display_thingUserSelected() : Displays the desired temp or time, for use as the user is setting the value.
+ > display_thingUserSelectedp() : Displays the desired temp or time, for use as the user is setting the value.
  > display_currentTemp() : Current temp and phase on first line and the time to desired temp on 2nd line.
              Displays a ^ if the heater is on and a - if the heater is off.  During the Cool phase, 
              it uses the 2nd line to instruct the user to open the oven door.
@@ -26,8 +26,7 @@ void display_instructions()
   delay(1000);
 }
 
-void display_thingUserSelected(double thingToDisplay, boolean timeOrTemp, int pointNum) /* timeOrTemp is
-                             true when we are displaying a temp and false when we are displaying a time*/
+void display_thingUserSelected(double thingToDisplay, boolean timeOrTemp, int pointNum) // timeOrTemp is true when we are displaying a temp and false when we are displaying a time
 {
   lcd.clear();
   if(timeOrTemp){ // We are displaying a temp
@@ -57,6 +56,12 @@ void display_currentTemp()
   lcd.print(phase);
   if(phase == "Cool"){
     lcd.setCursor(0,1);lcd.print("Please Open Door");
+        if(Output>0){
+         lcd.setCursor(15,0); lcd.print("^");
+    }
+    if(Output<=0){
+         lcd.setCursor(15,0); lcd.print("-");
+    }
   }else{
     // DISPLAY DESIRED TEMP, temperature which the controller is trying to reach.
     lcd.setCursor(0,1); 
