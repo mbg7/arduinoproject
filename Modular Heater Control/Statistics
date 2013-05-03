@@ -23,3 +23,5 @@ void Statistics(){
   lcd.print("Pk:");lcd.print(maxTempError);lcd.print("%");
   delay(6000);
 }
+
+
