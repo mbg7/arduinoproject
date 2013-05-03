@@ -89,13 +89,13 @@ void loop()
                       desiredTime2 = setDesiredTime(2); lcd.setCursor(11,1);lcd.print("Set."); delay(500);
                       desiredTemp3 = setDesiredTemp(3); lcd.setCursor(11,1);lcd.print("Set."); delay(500);
                       desiredTime3 = setDesiredTime(3); lcd.setCursor(11,1);lcd.print("Set."); delay(500);
-                       // HEATER TESTING
+                       // HEATER TESTING. You must use hardcoded points, and not the above code, if you wish to run the real time MATLAB plotting
 //                                          desiredTemp1 = 150;
 //                                          desiredTemp2 = 150;
 //                                          desiredTemp3 = 230;
-//                                          desiredTime1 = 200;
-//                                          desiredTime2 = 300;
-//                                          desiredTime3 = 400;
+//                                          desiredTime1 = 150;
+//                                          desiredTime2 = 200;
+//                                          desiredTime3 = 300;
                       // BREADBOARD TESTING
 //                                          desiredTemp1 = 10;
 //                                          desiredTemp2 = 10;
@@ -119,14 +119,15 @@ void loop()
                     
                   // THIS GETS RUN DURING EVERY LOOP
                   if(desiredTempSet && !checkUserInterrupt() && !ReflowComplete){
-                        runTime = (millis()-startTime)/1000; // Determine how long the PID has been running. In seconds.
+                        readTemp();
+                     //   runTime = (millis()-startTime)/1000; // Determine how long the PID has been running. In seconds.
                         determineReflowSection();  // Determine if we are in ramp, soak, reflow, or cooling
                         if(!checkUserInterrupt() && !ReflowComplete ){
                               // If we are at the first half of a ramp or reflow...
-                              if(  ((phase == "Ramp") && (runTime < desiredTime1/1.5)) || ((phase == "Reflow") && (runTime <  (desiredTime3 - (desiredTime3-desiredTime2)/3) )) ){
+                              if(  ((phase == "Ramp") && (runTime < desiredTime1/2.3)) || ((phase == "Reflow") && (runTime <  (desiredTime3 - (desiredTime3-desiredTime2)/(4)) )) ){
                                  // Use aggresive coefficients for first half of Ramp and Reflow
                                     kp = 8;
-                                    ki = 10;
+                                    ki = 9;
                                     kd = 5;
                                }
                               else{ // use steady state coefficients
@@ -140,7 +141,7 @@ void loop()
                     }
         }
         // We have completed the reflow section if the temp is down to room and the time has passed the third set point
-        if(currentTemp<=28 && runTime > desiredTime3) ReflowComplete = true; 
+        if(currentTemp<=35 && runTime > desiredTime3) ReflowComplete = true; 
       }
       
       if(ReflowComplete){
