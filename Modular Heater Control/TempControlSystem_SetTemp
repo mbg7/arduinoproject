@@ -135,8 +135,18 @@ double setDesiredTime(int pointNumt) // pointNum is the desired point we are wor
    timeToSet= userAdjust(timeToSet, false,pointNumt); // the "false" input tells userAdjust that this is a TIME.
   }
   userFinished = false;
+  // Check if time is negative
   while(timeToSet < 0){
     lcd.clear();lcd.print("No time < 0.");
+    lcd.setCursor(0,1);lcd.print("Reset time.");
+    while(userFinished == false){
+       timeToSet = userAdjust(timeToSet, false,pointNumt); // the "false" input tells userAdjust that this is a TIME.
+    } 
+    userFinished = false;
+  }
+  // Check if time is over 15 minutes
+    while(timeToSet > 900){ 
+    lcd.clear();lcd.print("No time>15 min");
     lcd.setCursor(0,1);lcd.print("Reset time.");
     while(userFinished == false){
        timeToSet = userAdjust(timeToSet, false,pointNumt); // the "false" input tells userAdjust that this is a TIME.
